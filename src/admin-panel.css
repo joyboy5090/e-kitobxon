@@ -1,0 +1,185 @@
+/* Admin panel uslublari. Barchasi .ap ichida cheklangan, saytning boshqa qismiga ta'sir qilmaydi. */
+.ap {
+  --ap-bg: #f6f1ea; --ap-card: #fffdf9; --ap-ink: #2b2420; --ap-muted: #7d6f64;
+  --ap-line: #e6dccf; --ap-accent: #855852; --ap-accent-ink: #fff; --ap-side: #2f2622;
+  --ap-ok: #3f7a5a; --ap-danger: #b3402f; --ap-radius: 12px;
+  display: grid; grid-template-columns: 250px minmax(0, 1fr); min-height: 100vh;
+  background: var(--ap-bg); color: var(--ap-ink);
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; font-size: 14px; line-height: 1.45;
+}
+.ap *, .ap *::before, .ap *::after { box-sizing: border-box; }
+.ap h1, .ap h2, .ap h3, .ap p { margin: 0; }
+.ap button, .ap input, .ap select, .ap textarea { font: inherit; color: inherit; }
+.ap button { cursor: pointer; }
+.ap button:disabled { cursor: not-allowed; opacity: .55; }
+.ap small { display: block; color: var(--ap-muted); font-size: 12px; }
+
+/* Yon panel */
+.ap-side { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; gap: 18px; padding: 20px 14px; background: var(--ap-side); color: #efe6dc; }
+.ap-brand { display: flex; align-items: center; gap: 10px; padding: 0 8px; }
+.ap-brand strong { font-size: 16px; display: block; }
+.ap-brand small { color: #b9a999; }
+.ap-brand__mark { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; background: var(--ap-accent); color: #fff; }
+.ap-nav { display: flex; flex-direction: column; gap: 4px; }
+.ap-nav button { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 0; border-radius: 10px; background: transparent; color: #d8cabb; text-align: left; }
+.ap-nav button:hover { background: rgba(255,255,255,.07); }
+.ap-nav button.is-active { background: var(--ap-accent); color: #fff; }
+.ap-side__foot { margin-top: auto; display: flex; flex-direction: column; gap: 4px; }
+.ap-me { display: flex; align-items: center; gap: 10px; padding: 10px 8px; margin-bottom: 4px; border-top: 1px solid rgba(255,255,255,.1); }
+.ap-me > span { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: #5a4a42; font-weight: 600; font-size: 12px; }
+.ap-me strong { display: block; }
+.ap-me small { color: #b9a999; }
+.ap-side__link { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border: 0; border-radius: 10px; background: transparent; color: #d8cabb; text-decoration: none; text-align: left; }
+.ap-side__link:hover { background: rgba(255,255,255,.07); }
+
+/* Asosiy qism */
+.ap-main { padding: 28px clamp(16px, 3vw, 40px) 60px; min-width: 0; }
+.ap-head { margin-bottom: 20px; }
+.ap-head h1 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; }
+.ap-head p { color: var(--ap-muted); margin-top: 2px; }
+.ap-stack { display: flex; flex-direction: column; gap: 16px; }
+.ap-toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.ap-toolbar .ap-search { flex: 1 1 240px; }
+.ap-grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.ap-muted { color: var(--ap-muted); }
+.ap-pad { padding: 18px; }
+.ap-note { display: flex; gap: 8px; align-items: flex-start; color: var(--ap-muted); font-size: 12.5px; }
+.ap-note svg { flex: none; margin-top: 2px; }
+
+/* Kartalar va statistika */
+.ap-card { background: var(--ap-card); border: 1px solid var(--ap-line); border-radius: var(--ap-radius); padding: 18px; }
+.ap-card--flush { padding: 0; overflow: hidden; }
+.ap-card__head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.ap-card__head h3 { font-size: 15px; }
+.ap-card__head p { color: var(--ap-muted); font-size: 12.5px; }
+.ap-card__head--split { justify-content: space-between; flex-wrap: wrap; }
+.ap-card__icon { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 8px; background: #f0e4dc; color: var(--ap-accent); }
+.ap-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; }
+.ap-stat { background: var(--ap-card); border: 1px solid var(--ap-line); border-radius: var(--ap-radius); padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; }
+.ap-stat span { color: var(--ap-muted); font-size: 12.5px; }
+.ap-stat strong { font-size: 26px; font-weight: 700; letter-spacing: -.02em; }
+
+/* Grafik */
+.ap-chart { display: flex; align-items: stretch; gap: 3px; height: 170px; padding-top: 6px; }
+.ap-chart__col { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; }
+.ap-chart__bar { width: 100%; background: var(--ap-accent); border-radius: 3px 3px 0 0; min-height: 0; opacity: .85; }
+.ap-chart__col:hover .ap-chart__bar { opacity: 1; }
+.ap-chart__label { height: 16px; font-size: 10.5px; color: var(--ap-muted); line-height: 16px; }
+.ap-chart__total { margin-top: 8px; color: var(--ap-muted); }
+.ap-chart__total strong { color: var(--ap-ink); }
+.ap-seg { display: inline-flex; padding: 3px; border-radius: 10px; background: #efe6dc; }
+.ap-seg button { border: 0; background: transparent; padding: 6px 12px; border-radius: 8px; color: var(--ap-muted); }
+.ap-seg button.is-on { background: var(--ap-card); color: var(--ap-ink); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+
+/* Reyting */
+.ap-rank { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.ap-rank li { display: grid; grid-template-columns: 28px 1fr auto; gap: 10px; align-items: center; padding: 9px 0; border-top: 1px solid var(--ap-line); }
+.ap-rank li:first-child { border-top: 0; }
+.ap-rank__n { color: var(--ap-muted); font-variant-numeric: tabular-nums; }
+.ap-rank__name { font-weight: 600; min-width: 0; }
+.ap-rank__value { text-align: right; font-weight: 700; }
+
+/* Tugmalar va maydonlar */
+.ap-btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 9px 14px; border: 1px solid var(--ap-line); border-radius: 10px; background: var(--ap-card); font-weight: 500; }
+.ap-btn:hover:not(:disabled) { border-color: #cdbfae; background: #fbf6ef; }
+.ap-btn--primary { background: var(--ap-accent); border-color: var(--ap-accent); color: var(--ap-accent-ink); }
+.ap-btn--primary:hover:not(:disabled) { background: #744a45; border-color: #744a45; }
+.ap-btn--danger { background: var(--ap-danger); border-color: var(--ap-danger); color: #fff; }
+.ap-btn--danger:hover:not(:disabled) { background: #9a3425; border-color: #9a3425; }
+.ap-btn--small { padding: 6px 10px; font-size: 13px; }
+.ap-icon-btn { display: inline-grid; place-items: center; width: 32px; height: 32px; border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--ap-muted); }
+.ap-icon-btn:hover:not(:disabled) { background: #f0e4dc; color: var(--ap-ink); }
+.ap-icon-btn--danger:hover:not(:disabled) { background: #f8e3df; color: var(--ap-danger); }
+.ap-search { display: flex; align-items: center; gap: 8px; padding: 0 12px; border: 1px solid var(--ap-line); border-radius: 10px; background: var(--ap-card); color: var(--ap-muted); }
+.ap-search input { flex: 1; min-width: 0; border: 0; outline: 0; padding: 9px 0; background: transparent; color: var(--ap-ink); }
+.ap-search:focus-within, .ap-select:focus, .ap-field input:focus, .ap-field textarea:focus, .ap-field-inline input:focus { outline: 2px solid #d9b9ae; outline-offset: 0; }
+.ap-select, .ap-field-inline input { padding: 9px 12px; border: 1px solid var(--ap-line); border-radius: 10px; background: var(--ap-card); }
+.ap-field-inline { display: flex; align-items: center; gap: 8px; color: var(--ap-muted); }
+.ap-form { display: flex; flex-direction: column; gap: 14px; }
+.ap-form__pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.ap-field { display: flex; flex-direction: column; gap: 6px; font-weight: 500; }
+.ap-field small { display: inline; font-weight: 400; }
+.ap-field input, .ap-field textarea { padding: 10px 12px; border: 1px solid var(--ap-line); border-radius: 10px; background: #fff; font-weight: 400; }
+.ap-field textarea { min-height: 96px; resize: vertical; }
+.ap-actions-row { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+.ap-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.ap-chips span { padding: 6px 12px; border: 1px solid var(--ap-line); border-radius: 999px; background: var(--ap-card); color: var(--ap-muted); }
+.ap-chips strong { color: var(--ap-ink); }
+
+/* Jadval */
+.ap-table-wrap { overflow-x: auto; }
+.ap-table { width: 100%; border-collapse: collapse; min-width: 640px; }
+.ap-table th { text-align: left; padding: 11px 16px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--ap-muted); background: #faf5ee; border-bottom: 1px solid var(--ap-line); white-space: nowrap; }
+.ap-table td { padding: 12px 16px; border-bottom: 1px solid var(--ap-line); vertical-align: middle; }
+.ap-table tbody tr:last-child td { border-bottom: 0; }
+.ap-table tbody tr:hover { background: #fcf8f2; }
+.ap-table tr.is-blocked { opacity: .72; }
+.ap-table td strong { display: block; }
+.ap-th-actions, .ap-td-actions { text-align: right; white-space: nowrap; }
+.ap-badge { display: inline-block; padding: 3px 10px; border-radius: 999px; background: #f0e8de; color: #5f5247; font-size: 12px; font-weight: 600; }
+.ap-badge--accent { background: #f1dfd9; color: #7a463f; }
+.ap-badge--ok { background: #e1f0e7; color: #2f6a4b; }
+.ap-badge--danger { background: #f8e0db; color: #9a3425; }
+.ap-pager { display: flex; justify-content: center; align-items: center; gap: 14px; color: var(--ap-muted); }
+
+/* Bo'sh holat, skeleton, ogohlantirish */
+.ap-empty { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 44px 20px; text-align: center; }
+.ap-empty span { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 12px; background: #f0e4dc; color: var(--ap-accent); }
+.ap-empty h3 { font-size: 16px; }
+.ap-empty p { color: var(--ap-muted); max-width: 380px; }
+.ap-skeletons { display: flex; flex-direction: column; gap: 10px; }
+.ap-skeleton { display: block; height: 44px; border-radius: 8px; background: linear-gradient(90deg, #efe6dc, #f8f1e8, #efe6dc); background-size: 200% 100%; animation: ap-shimmer 1.2s infinite linear; }
+.ap-stat .ap-skeleton { height: 28px; }
+.ap-alert { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border: 1px solid #e8c3bb; border-radius: 10px; background: #fcefec; color: #8f2f21; }
+.ap-confirm-text { line-height: 1.55; }
+.ap-spin { animation: ap-rotate 1s linear infinite; }
+@keyframes ap-shimmer { to { background-position: -200% 0; } }
+@keyframes ap-rotate { to { transform: rotate(360deg); } }
+
+/* Modal va xabar */
+.ap-modal { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 16px; background: rgba(35,26,22,.5); overflow-y: auto; }
+.ap-modal__box { width: min(440px, 100%); max-height: calc(100vh - 32px); overflow-y: auto; background: var(--ap-card); border-radius: 14px; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
+.ap-modal__box--wide { width: min(620px, 100%); }
+.ap-modal__head { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--ap-line); }
+.ap-modal__head h2 { font-size: 17px; }
+.ap-modal__body { padding: 20px; }
+.ap-modal__body .ap-note { margin-top: 14px; }
+.ap-toast { position: fixed; right: 20px; bottom: 20px; z-index: 60; display: flex; align-items: center; gap: 10px; max-width: min(420px, calc(100vw - 32px)); padding: 12px 10px 12px 16px; border-radius: 12px; background: #2f2622; color: #fff; box-shadow: 0 10px 30px rgba(0,0,0,.25); }
+.ap-toast--error { background: #8f2f21; }
+.ap-toast .ap-icon-btn { color: #fff; margin-left: auto; }
+.ap-toast .ap-icon-btn:hover { background: rgba(255,255,255,.15); color: #fff; }
+
+/* Mobil */
+@media (max-width: 900px) {
+  .ap { grid-template-columns: 1fr; }
+  .ap-side { position: static; height: auto; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 10px; padding: 12px; }
+  .ap-nav { flex-direction: row; order: 3; width: 100%; overflow-x: auto; }
+  .ap-nav button { flex: none; padding: 8px 12px; }
+  .ap-side__foot { margin-top: 0; margin-left: auto; flex-direction: row; align-items: center; }
+  .ap-me { border: 0; margin: 0; padding: 0; }
+  .ap-me div, .ap-side__link span { display: none; }
+  .ap-grid-2, .ap-form__pair { grid-template-columns: 1fr; }
+  .ap-main { padding: 20px 14px 80px; }
+}
+
+/* Qo'llab-quvvatlash bo'limi */
+.ap-support-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--ap-line); margin-bottom: 16px; }
+.ap-support-tabs button { padding: 10px 18px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--ap-muted); font-weight: 600; font-size: 13px; }
+.ap-support-tabs button.is-active { color: var(--ap-accent); border-bottom-color: var(--ap-accent); }
+.ap-support-tabs button:hover:not(.is-active) { color: var(--ap-ink); }
+.ap-ticket-message { padding: 14px 16px; background: #f8f4ed; border: 1px solid var(--ap-line); border-radius: 10px; font-size: 13px; line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; margin-bottom: 14px; }
+.ap-ticket-info { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; font-size: 12px; color: var(--ap-muted); }
+.ap-ticket-info strong { color: var(--ap-ink); }
+.ap-replies { display: flex; flex-direction: column; gap: 10px; margin: 14px 0; max-height: 280px; overflow-y: auto; padding-right: 4px; }
+.ap-reply { padding: 12px 14px; background: #eef3ec; border-radius: 10px; font-size: 13px; line-height: 1.6; }
+.ap-reply__head { display: flex; justify-content: space-between; font-size: 11px; color: var(--ap-muted); margin-bottom: 6px; }
+.ap-reply__head strong { color: var(--ap-ok); }
+.ap-reply__text { white-space: pre-wrap; overflow-wrap: anywhere; }
+.ap-reply-form { display: flex; gap: 10px; margin-top: 12px; }
+.ap-reply-form textarea { flex: 1; min-height: 70px; padding: 10px 12px; border: 1px solid var(--ap-line); border-radius: 10px; background: #fff; resize: vertical; font-size: 13px; line-height: 1.5; }
+.ap-reply-form textarea:focus { outline: 2px solid #d9b9ae; outline-offset: 0; }
+.ap-status-row { display: flex; gap: 10px; align-items: center; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--ap-line); }
+.ap-status-row label { font-size: 12px; font-weight: 600; color: var(--ap-muted); }
+.ap-badge--info { background: #e3edf8; color: #3a5f8a; }
+.ap-badge--warning { background: #fef3e0; color: #9a6b2a; }
+

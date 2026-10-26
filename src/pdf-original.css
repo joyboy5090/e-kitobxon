@@ -1,0 +1,11 @@
+/* "Asl PDF" ko'rinishi uchun uslublar */
+.kb-original { position: relative; width: 100%; min-height: 320px; display: flex; justify-content: center; }
+.kb-original__canvas { display: block; max-width: 100%; height: auto; background: #fff; box-shadow: 0 1px 6px rgba(0,0,0,.12); transition: opacity .15s; }
+.kb-original__canvas.is-loading { opacity: .25; }
+.kb-original__overlay { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; pointer-events: none; color: #7d6f64; }
+.kb-original__overlay--error { pointer-events: auto; }
+.kb-original__overlay--error > div { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.kb-original__overlay h2 { margin: 0; font-size: 20px; }
+.kb-original__overlay p { margin: 0; }
+.kb-reader__mode { display: inline-flex; gap: 4px; margin-right: 8px; }
+.kb-reader__mode .kb-button.is-on { background: #855852; border-color: #855852; color: #fff; }

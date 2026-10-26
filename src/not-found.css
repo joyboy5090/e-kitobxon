@@ -1,0 +1,105 @@
+/* 404 Xato sahifasi uslublari */
+.nf-page {
+  min-height: calc(100vh - 200px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px 100px;
+}
+
+.nf-card {
+  max-width: 580px;
+  width: 100%;
+  text-align: center;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 56px 40px;
+  box-shadow: 0 16px 45px rgba(60, 43, 32, 0.06);
+  position: relative;
+  overflow: hidden;
+}
+
+.nf-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--clay), var(--wine));
+}
+
+.nf-code {
+  font: 700 clamp(72px, 12vw, 110px)/1 var(--serif);
+  color: var(--wine);
+  letter-spacing: -2px;
+  margin: 0;
+  text-shadow: 2px 4px 12px rgba(135, 77, 77, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.nf-book-icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: #f4ede5;
+  color: var(--clay);
+  display: inline-grid;
+  place-items: center;
+  vertical-align: middle;
+}
+
+.nf-title {
+  font: 600 26px var(--serif);
+  color: #352e29;
+  margin: 18px 0 12px;
+}
+
+.nf-desc {
+  color: #72655b;
+  font: 15px/1.7 var(--reading);
+  max-width: 440px;
+  margin: 0 auto 32px;
+}
+
+.nf-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.nf-search-box {
+  margin-top: 36px;
+  padding-top: 28px;
+  border-top: 1px dashed var(--line);
+}
+
+.nf-search-box p {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0 0 14px;
+}
+
+/* Responsivlik */
+@media (max-width: 600px) {
+  .nf-card {
+    padding: 36px 20px;
+  }
+  .nf-title {
+    font-size: 22px;
+  }
+  .nf-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+  .nf-actions button,
+  .nf-actions a {
+    width: 100%;
+  }
+}

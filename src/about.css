@@ -1,0 +1,248 @@
+/* Biz haqimizda sahifasi uslublari */
+.ab-page {
+  width: min(1100px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 40px 0 90px;
+}
+
+.ab-hero {
+  text-align: center;
+  max-width: 760px;
+  margin: 0 auto 52px;
+}
+
+.ab-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--wine);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 14px;
+}
+
+.ab-hero h1 {
+  font: 600 clamp(34px, 4.5vw, 48px)/1.15 var(--serif);
+  color: #352e29;
+  letter-spacing: -0.8px;
+  margin: 0 0 18px;
+}
+
+.ab-hero p {
+  color: #6a5e55;
+  font: 16.5px/1.8 var(--reading);
+  margin: 0;
+}
+
+/* Missiya kartasi */
+.ab-mission-card {
+  background: #eee4d7;
+  border-radius: 12px;
+  padding: 44px 50px;
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1.3fr 0.7fr;
+  align-items: center;
+  gap: 36px;
+  margin-bottom: 56px;
+  box-shadow: 0 14px 40px rgba(60, 43, 32, 0.06);
+}
+
+.ab-mission-copy h2 {
+  font: 600 28px/1.25 var(--serif);
+  color: #312822;
+  margin: 0 0 14px;
+}
+
+.ab-mission-copy p {
+  color: #5c5046;
+  font: 15.5px/1.8 var(--reading);
+  margin: 0;
+}
+
+.ab-mission-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 28px;
+  background: rgba(255, 254, 250, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(60, 43, 32, 0.08);
+}
+
+.ab-mission-badge svg {
+  color: var(--wine);
+  margin-bottom: 10px;
+}
+
+.ab-mission-badge strong {
+  font: 600 20px var(--serif);
+  color: #352e29;
+  display: block;
+}
+
+.ab-mission-badge span {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 4px;
+}
+
+/* Qulayliklar to'plami (Features grid) */
+.ab-section-title {
+  text-align: center;
+  margin-bottom: 36px;
+}
+
+.ab-section-title h2 {
+  font: 600 30px var(--serif);
+  color: #352e29;
+  margin: 0 0 8px;
+}
+
+.ab-section-title p {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 0;
+}
+
+.ab-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+  margin-bottom: 56px;
+}
+
+.ab-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 28px 24px;
+  transition: all 0.25s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.ab-card:hover {
+  transform: translateY(-4px);
+  border-color: #d8c7b8;
+  box-shadow: var(--shadow);
+}
+
+.ab-card__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: #f4ede5;
+  color: var(--wine);
+  display: grid;
+  place-items: center;
+  margin-bottom: 18px;
+}
+
+.ab-card h3 {
+  font: 600 18px var(--serif);
+  color: #382f2a;
+  margin: 0 0 10px;
+}
+
+.ab-card p {
+  color: #695d54;
+  font: 14px/1.65 var(--reading);
+  margin: 0;
+}
+
+/* Iqtibos banneri */
+.ab-quote {
+  background: #e9e1d6;
+  border-radius: 8px;
+  padding: 40px 50px;
+  text-align: center;
+  margin-bottom: 56px;
+  position: relative;
+  overflow: hidden;
+}
+
+.ab-quote p {
+  font: italic 22px/1.6 var(--serif);
+  color: #3f342d;
+  max-width: 680px;
+  margin: 0 auto 12px;
+}
+
+.ab-quote span {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--wine);
+}
+
+/* CTA qismi */
+.ab-cta {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 42px 30px;
+  text-align: center;
+  box-shadow: 0 8px 30px rgba(60, 43, 32, 0.04);
+}
+
+.ab-cta h2 {
+  font: 600 28px var(--serif);
+  color: #352e29;
+  margin: 0 0 10px;
+}
+
+.ab-cta p {
+  color: var(--muted);
+  font-size: 14.5px;
+  max-width: 500px;
+  margin: 0 auto 24px;
+}
+
+.ab-cta__actions {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+/* Responsivlik */
+@media (max-width: 980px) {
+  .ab-mission-card {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    padding: 32px 28px;
+  }
+  .ab-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 720px) {
+  .ab-page {
+    width: calc(100% - 32px);
+    padding: 24px 0 60px;
+  }
+  .ab-hero h1 {
+    font-size: 30px;
+  }
+  .ab-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .ab-quote {
+    padding: 28px 20px;
+  }
+  .ab-quote p {
+    font-size: 18px;
+  }
+}
