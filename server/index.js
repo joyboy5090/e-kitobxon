@@ -881,6 +881,54 @@ for (const folder of ['wasm', 'cmaps', 'standard_fonts', 'iccs']) {
 registerAdminRoutes(app, { pool, objectStorage, requireCsrf, requireUser, requireAdmin, asyncRoute, mapDynamicBook })
 registerSupportRoutes(app, { pool, requireCsrf, requireUser, requireAdmin, asyncRoute, logAdminAction })
 
+// Dinamik Sitemap (Google va qidiruv tizimlari uchun barcha kitoblar bilan)
+app.get('/sitemap.xml', async (_req, res) => {
+  try {
+    const { rows } = await pool.query(
+      'SELECT id, created_at FROM library_books ORDER BY created_at DESC',
+    )
+    const baseUrl = 'https://e-kitobxon.uz'
+    const staticPages = [
+      { path: '/', priority: '1.0', changefreq: 'daily' },
+      { path: '/search', priority: '0.9', changefreq: 'daily' },
+      { path: '/about', priority: '0.7', changefreq: 'monthly' },
+      { path: '/support', priority: '0.7', changefreq: 'monthly' },
+      { path: '/privacy', priority: '0.4', changefreq: 'yearly' },
+      { path: '/terms', priority: '0.4', changefreq: 'yearly' },
+    ]
+
+    const urls = [
+      ...staticPages.map(
+        (p) => `  <url>
+    <loc>${baseUrl}${p.path}</loc>
+    <changefreq>${p.changefreq}</changefreq>
+    <priority>${p.priority}</priority>
+  </url>`,
+      ),
+      ...rows.map(
+        (b) => `  <url>
+    <loc>${baseUrl}/books/${encodeURIComponent(b.id)}</loc>
+    <lastmod>${new Date(b.created_at || Date.now()).toISOString().split('T')[0]}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>`,
+      ),
+    ]
+
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls.join('\n')}
+</urlset>`
+
+    res.header('Content-Type', 'application/xml')
+    res.header('Cache-Control', 'public, max-age=3600')
+    res.send(xml)
+  } catch (error) {
+    console.error('Sitemap xatolik:', error.message)
+    res.sendFile(path.join(projectRoot, 'public', 'sitemap.xml'))
+  }
+})
+
 app.use('/api', (_req, res) => res.status(404).json({ error: 'API manzili topilmadi.' }))
 
 if (process.env.NODE_ENV === 'production') {

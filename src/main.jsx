@@ -12,10 +12,7 @@ import SupportPage from './SupportPage.jsx'
 import LegalPage from './LegalPage.jsx'
 import AboutPage from './AboutPage.jsx'
 import NotFoundPage from './NotFoundPage.jsx'
-import * as PdfReaderModule from './PdfBookReader.jsx'
-
-// PdfBookReader.jsx default yoki nomli eksport bo‘lishidan qat’i nazar ishlaydi
-const PdfBookReader = PdfReaderModule.default || PdfReaderModule.PdfBookReader
+import PdfBookReader from './PdfBookReader.jsx'
 
 const readStore = (key, fallback) => {
   try {
