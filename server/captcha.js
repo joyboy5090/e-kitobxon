@@ -17,8 +17,8 @@ export function generateCaptcha() {
     question = `${a} - ${b} = ?`
   }
 
-  const width = 120
-  const height = 40
+  const width = 150
+  const height = 42
 
   // Noaniqlik uchun fon chiziqlari (shovqin)
   let noise = ''
@@ -27,7 +27,7 @@ export function generateCaptcha() {
     const y1 = Math.floor(Math.random() * height)
     const x2 = Math.floor(Math.random() * width)
     const y2 = Math.floor(Math.random() * height)
-    noise += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#c39b76" stroke-width="1.2" opacity="0.4" />`
+    noise += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#c39b76" stroke-width="1.2" opacity="0.35" />`
   }
 
   // Tasodifiy nuqtalar
@@ -39,7 +39,7 @@ export function generateCaptcha() {
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" style="border-radius:8px;background:#f5efe6;border:1px solid #dfd6c8;display:inline-block;vertical-align:middle;user-select:none;">
     ${noise}
-    <text x="50%" y="58%" dominant-baseline="middle" text-anchor="middle" font-family="'Courier New', Courier, monospace" font-weight="bold" font-size="20" fill="#4a3728" letter-spacing="2">${question}</text>
+    <text x="50%" y="56%" dominant-baseline="middle" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-weight="700" font-size="18" fill="#3e2d21" letter-spacing="1.5">${question}</text>
   </svg>`
 
   return {
