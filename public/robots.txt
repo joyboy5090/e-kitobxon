@@ -1,6 +1,7 @@
 User-agent: *
-Disallow:
+Allow: /
 
 Sitemap: https://e-kitobxon.uz/sitemap.xml
+
 
 

@@ -927,7 +927,7 @@ app.get('/ads.txt', async (_req, res) => {
 app.get('/robots.txt', (_req, res) => {
   res.type('text/plain; charset=utf-8').send(
 `User-agent: *
-Disallow:
+Allow: /
 
 Sitemap: https://e-kitobxon.uz/sitemap.xml
 `

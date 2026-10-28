@@ -6,7 +6,7 @@ import path from 'node:path'
 test('robots.txt allows all pages and points to sitemap.xml', () => {
   const content = fs.readFileSync(path.resolve('public/robots.txt'), 'utf8')
   assert.ok(content.includes('User-agent: *'), 'Barcha qidiruv botlari ko‘rsatilgan bo‘lishi kerak')
-  assert.ok(content.includes('Disallow:\n') || content.includes('Disallow:\r\n'), 'Disallow bo‘sh qoldirilgan bo‘lishi kerak')
+  assert.ok(content.includes('Allow: /'), 'Allow: / ko‘rsatilgan bo‘lishi kerak')
   assert.ok(content.includes('Sitemap: https://e-kitobxon.uz/sitemap.xml'), 'Sitemap ko‘rsatilgan bo‘lishi kerak')
 })
 
