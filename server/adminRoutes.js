@@ -1,3 +1,10 @@
+import {
+  createDatabaseBackup,
+  listBackups,
+  getSafeBackupPath,
+  deleteBackupFile,
+} from './backup.js'
+
 // Admin panel uchun qo'shimcha API yo'llari.
 // Barcha yo'llar faqat kirgan ADMIN uchun ishlaydi (requireUser + requireAdmin).
 
@@ -282,5 +289,28 @@ export function registerAdminRoutes(app, deps) {
       page,
       pageSize: AUDIT_PAGE_SIZE,
     })
+  }))
+
+  // ---------- Zaxira nusxa (Backup) tizimi ----------
+  app.get('/api/admin/backups', ...guard, asyncRoute(async (_req, res) => {
+    const backups = await listBackups()
+    res.json({ backups })
+  }))
+
+  app.post('/api/admin/backups', ...guard, requireCsrf, asyncRoute(async (req, res) => {
+    const backup = await createDatabaseBackup(pool, req.user.username)
+    await logAdminAction(pool, req.user, 'backup.create', 'system', backup.filename, `Hajmi: ${backup.sizeFormatted}`)
+    res.status(201).json({ backup })
+  }))
+
+  app.get('/api/admin/backups/:filename/download', ...guard, asyncRoute(async (req, res) => {
+    const filepath = getSafeBackupPath(req.params.filename)
+    res.download(filepath, req.params.filename)
+  }))
+
+  app.delete('/api/admin/backups/:filename', ...guard, requireCsrf, asyncRoute(async (req, res) => {
+    await deleteBackupFile(req.params.filename)
+    await logAdminAction(pool, req.user, 'backup.delete', 'system', req.params.filename)
+    res.json({ success: true })
   }))
 }

@@ -32,4 +32,6 @@ Thumbs.db
 
 # Temporary and local storage files
 storage/
+backups/
+*.json.gz
 .gemini/

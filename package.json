@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "scripts": { "dev": "node --env-file=.env server/index.js", "start": "node server/index.js", "build": "vite build" },
+  "scripts": { "dev": "node --env-file=.env server/index.js", "start": "node server/index.js", "build": "vite build", "backup": "node --env-file=.env scripts/backup.js" },
   "dependencies": {
     "@replit/object-storage": "^1.0.0",
     "connect-pg-simple": "^10.0.0",

@@ -18,6 +18,7 @@ import { registerAdminRoutes, logAdminAction } from './adminRoutes.js'
 import { registerSupportRoutes } from './supportRoutes.js'
 import { notifyNewUser, notifyNewReview } from './telegram.js'
 import { generateCaptcha, verifyCaptcha } from './captcha.js'
+import { startAutoBackupScheduler } from './backup.js'
 
 const { Pool } = pg
 const scrypt = promisify(scryptCallback)
@@ -979,6 +980,7 @@ dummyPasswordHash = await hashPassword(randomBytes(32).toString('hex'))
 await provisionAdminFromSecrets()
 server.listen(port, '0.0.0.0', () => {
   console.log(`Kitobxon server listening on port ${port}`)
+  startAutoBackupScheduler(pool)
 })
 
 async function shutdown() {
