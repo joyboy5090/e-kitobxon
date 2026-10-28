@@ -461,7 +461,6 @@ function Header({ path, user }) {
         <nav className="desktop-nav" aria-label="Asosiy navigatsiya">
           <Link href="/" className={`nav-link ${path === '/' ? 'active' : ''}`}>Bosh sahifa</Link>
           <Link href="/search" className={`nav-link ${path === '/search' ? 'active' : ''}`}>Kitoblar</Link>
-          <Link href="/search?genre=Roman" className="nav-link">Janrlar</Link>
           <Link href="/about" className={`nav-link ${path === '/about' ? 'active' : ''}`}>Biz haqimizda</Link>
           <Link href="/support" className={`nav-link ${path === '/support' ? 'active' : ''}`}>Yordam</Link>
         </nav>
