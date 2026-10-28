@@ -923,6 +923,19 @@ app.get('/ads.txt', async (_req, res) => {
   res.sendFile(path.join(projectRoot, 'public', 'ads.txt'))
 })
 
+// Qidiruv robotlari uchun robots.txt fayli (to'g'ridan-to'g'ri ruxsat berilgan)
+app.get('/robots.txt', (_req, res) => {
+  res.type('text/plain; charset=utf-8').send(
+`User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+
+Sitemap: https://e-kitobxon.uz/sitemap.xml
+`
+  )
+})
+
 // Dinamik Sitemap (Google va qidiruv tizimlari uchun barcha kitoblar bilan)
 app.get('/sitemap.xml', async (_req, res) => {
   try {
