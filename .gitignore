@@ -30,8 +30,10 @@ Thumbs.db
 *.sln
 *.sw?
 
-# Temporary and local storage files
-storage/
+# Storage files
+storage/*
+!storage/kitobxon-books/
+!storage/kitobxon-books/*.pdf
 backups/
 *.json.gz
 .gemini/
