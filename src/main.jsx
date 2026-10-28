@@ -82,6 +82,20 @@ function App() {
     window.addEventListener('popstate', onPop)
     return () => window.removeEventListener('popstate', onPop)
   }, [])
+
+  // Google Analytics & Yandex Metrika SPA sahifa o'zgarishini qayd etish
+  useEffect(() => {
+    if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
+      window.gtag('event', 'page_view', {
+        page_path: route,
+        page_location: window.location.href,
+        page_title: document.title,
+      })
+    }
+    if (typeof window !== 'undefined' && typeof window.ym === 'function' && window.__YM_ID__) {
+      window.ym(window.__YM_ID__, 'hit', route)
+    }
+  }, [route])
   useEffect(() => localStorage.setItem('kitobxon-preferences', JSON.stringify(preferences)), [preferences])
 
   useEffect(() => {
