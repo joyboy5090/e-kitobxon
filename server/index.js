@@ -17,6 +17,7 @@ import { books } from '../src/catalog.js'
 import { registerAdminRoutes, logAdminAction } from './adminRoutes.js'
 import { registerSupportRoutes } from './supportRoutes.js'
 import { registerAdRoutes } from './adRoutes.js'
+import { registerBlogRoutes } from './blogRoutes.js'
 import { notifyNewUser, notifyNewReview } from './telegram.js'
 import { generateCaptcha, verifyCaptcha } from './captcha.js'
 import { startAutoBackupScheduler } from './backup.js'
@@ -908,6 +909,7 @@ for (const folder of ['wasm', 'cmaps', 'standard_fonts', 'iccs']) {
 registerAdminRoutes(app, { pool, objectStorage, requireCsrf, requireUser, requireAdmin, asyncRoute, mapDynamicBook })
 registerSupportRoutes(app, { pool, requireCsrf, requireUser, requireAdmin, asyncRoute, logAdminAction, verifyCaptcha })
 registerAdRoutes(app, { pool, requireCsrf, requireUser, requireAdmin, asyncRoute, logAdminAction })
+registerBlogRoutes(app, { pool, requireCsrf, requireUser, requireAdmin, asyncRoute, logAdminAction })
 
 // Google AdSense ads.txt fayli
 app.get('/ads.txt', async (_req, res) => {
@@ -940,16 +942,25 @@ Sitemap: https://e-kitobxon.uz/sitemap.xml
   )
 })
 
-// Dinamik Sitemap (Google va qidiruv tizimlari uchun barcha kitoblar bilan)
+// Dinamik Sitemap (Google va qidiruv tizimlari uchun barcha kitoblar va blog maqolalari bilan)
 app.get('/sitemap.xml', async (_req, res) => {
   try {
-    const { rows } = await pool.query(
+    const { rows: bookRows } = await pool.query(
       'SELECT id, created_at FROM library_books ORDER BY created_at DESC',
     )
+    let blogRows = []
+    try {
+      const bRes = await pool.query(
+        'SELECT slug, updated_at FROM blog_posts WHERE is_published = true ORDER BY updated_at DESC',
+      )
+      blogRows = bRes.rows
+    } catch {}
+
     const baseUrl = 'https://e-kitobxon.uz'
     const staticPages = [
       { path: '/', priority: '1.0', changefreq: 'daily' },
       { path: '/search', priority: '0.9', changefreq: 'daily' },
+      { path: '/blog', priority: '0.9', changefreq: 'daily' },
       { path: '/about', priority: '0.7', changefreq: 'monthly' },
       { path: '/support', priority: '0.7', changefreq: 'monthly' },
       { path: '/privacy', priority: '0.4', changefreq: 'yearly' },
@@ -964,10 +975,18 @@ app.get('/sitemap.xml', async (_req, res) => {
     <priority>${p.priority}</priority>
   </url>`,
       ),
-      ...rows.map(
+      ...bookRows.map(
         (b) => `  <url>
     <loc>${baseUrl}/books/${encodeURIComponent(b.id)}</loc>
     <lastmod>${new Date(b.created_at || Date.now()).toISOString().split('T')[0]}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>`,
+      ),
+      ...blogRows.map(
+        (post) => `  <url>
+    <loc>${baseUrl}/blog/${encodeURIComponent(post.slug)}</loc>
+    <lastmod>${new Date(post.updated_at || Date.now()).toISOString().split('T')[0]}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>`,

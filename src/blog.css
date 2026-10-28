@@ -1,0 +1,517 @@
+/* Kitobxon — Adabiy Blog va Maqolalar Dizayni */
+
+.blog-page {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 32px 20px 80px;
+}
+
+.blog-hero {
+  text-align: center;
+  padding: 40px 20px 32px;
+  background: linear-gradient(135deg, rgba(162, 44, 41, 0.04) 0%, rgba(200, 150, 90, 0.08) 100%);
+  border-radius: 18px;
+  margin-bottom: 36px;
+  border: 1px solid rgba(162, 44, 41, 0.08);
+}
+
+.blog-hero__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--wine, #8f2d2a);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 14px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 14px;
+}
+
+.blog-hero h1 {
+  font-family: var(--font-serif, 'Playfair Display', Georgia, serif);
+  font-size: clamp(28px, 4vw, 42px);
+  color: var(--ink, #1f2421);
+  margin: 0 0 12px;
+  line-height: 1.25;
+}
+
+.blog-hero p {
+  font-size: clamp(15px, 2vw, 17px);
+  color: var(--muted, #626a64);
+  max-width: 640px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* Qidiruv va Filterlar */
+.blog-filters-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.blog-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.blog-cat-pill {
+  border: 1px solid var(--line, #e2dcd2);
+  background: var(--surface, #fff);
+  color: var(--muted, #626a64);
+  padding: 7px 16px;
+  border-radius: 20px;
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.blog-cat-pill:hover {
+  border-color: var(--wine, #8f2d2a);
+  color: var(--wine, #8f2d2a);
+}
+
+.blog-cat-pill.is-active {
+  background: var(--wine, #8f2d2a);
+  color: #fff;
+  border-color: var(--wine, #8f2d2a);
+  box-shadow: 0 2px 8px rgba(143, 45, 42, 0.25);
+}
+
+.blog-search-box {
+  position: relative;
+  min-width: 240px;
+  flex: 1;
+  max-width: 320px;
+}
+
+.blog-search-box input {
+  width: 100%;
+  padding: 9px 14px 9px 36px;
+  border: 1px solid var(--line, #e2dcd2);
+  border-radius: 20px;
+  font-size: 13.5px;
+  background: var(--surface, #fff);
+  color: var(--ink, #1f2421);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.blog-search-box input:focus {
+  border-color: var(--wine, #8f2d2a);
+}
+
+.blog-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted, #888);
+  pointer-events: none;
+}
+
+/* Tanlangan (Featured) maqola kartochkasi */
+.blog-featured-card {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 32px;
+  background: var(--surface, #fff);
+  border: 1px solid var(--line, #e2dcd2);
+  border-radius: 16px;
+  padding: 28px;
+  margin-bottom: 40px;
+  transition: transform 0.2s, box-shadow 0.2s;
+  text-decoration: none;
+  color: inherit;
+}
+
+.blog-featured-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
+}
+
+.blog-featured-card__left {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.blog-featured-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12.5px;
+  color: var(--muted, #777);
+  margin-bottom: 12px;
+}
+
+.blog-tag {
+  background: rgba(143, 45, 42, 0.08);
+  color: var(--wine, #8f2d2a);
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 11.5px;
+}
+
+.blog-featured-card h2 {
+  font-family: var(--font-serif, 'Playfair Display', Georgia, serif);
+  font-size: clamp(22px, 3vw, 28px);
+  color: var(--ink, #1f2421);
+  margin: 0 0 14px;
+  line-height: 1.3;
+}
+
+.blog-featured-card p {
+  color: var(--muted, #555);
+  line-height: 1.6;
+  font-size: 15px;
+  margin: 0 0 18px;
+}
+
+.blog-featured-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12.5px;
+  color: var(--muted, #777);
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px dashed var(--line, #e2dcd2);
+}
+
+.blog-read-more-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--wine, #8f2d2a);
+  font-weight: 600;
+  font-size: 13.5px;
+}
+
+.blog-featured-card__right {
+  border-radius: 12px;
+  background: linear-gradient(135deg, #2b3a4a 0%, #1a222d 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 220px;
+  color: #fff;
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.blog-featured-card__right::before {
+  content: '“';
+  position: absolute;
+  font-size: 180px;
+  font-family: serif;
+  color: rgba(255, 255, 255, 0.05);
+  top: -30px;
+  right: 10px;
+  pointer-events: none;
+}
+
+/* Maqolalar Gridi */
+.blog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 26px;
+}
+
+.blog-card {
+  background: var(--surface, #fff);
+  border: 1px solid var(--line, #e2dcd2);
+  border-radius: 14px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  text-decoration: none;
+  color: inherit;
+}
+
+.blog-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+  border-color: rgba(143, 45, 42, 0.3);
+}
+
+.blog-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-size: 12px;
+  color: var(--muted, #777);
+}
+
+.blog-card h3 {
+  font-family: var(--font-serif, 'Playfair Display', Georgia, serif);
+  font-size: 19px;
+  color: var(--ink, #1f2421);
+  margin: 0 0 10px;
+  line-height: 1.35;
+  transition: color 0.2s;
+}
+
+.blog-card:hover h3 {
+  color: var(--wine, #8f2d2a);
+}
+
+.blog-card p {
+  color: var(--muted, #555);
+  font-size: 13.5px;
+  line-height: 1.55;
+  margin: 0 0 16px;
+  flex: 1;
+}
+
+.blog-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--muted, #888);
+  padding-top: 12px;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* Bo'sh holat */
+.blog-empty {
+  text-align: center;
+  padding: 60px 20px;
+  background: var(--surface, #fff);
+  border-radius: 14px;
+  border: 1px dashed var(--line, #e2dcd2);
+}
+
+.blog-empty h3 {
+  margin: 12px 0 6px;
+  font-size: 18px;
+}
+
+.blog-empty p {
+  color: var(--muted, #777);
+  font-size: 14px;
+}
+
+/* ============================================================
+   YAKKA MAQOLA SAHIFASI (BlogPostPage)
+============================================================ */
+
+.blog-post-page {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 32px 20px 80px;
+}
+
+.blog-post-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--muted, #777);
+  margin-bottom: 24px;
+}
+
+.blog-post-breadcrumb a {
+  color: var(--wine, #8f2d2a);
+  text-decoration: none;
+}
+
+.blog-post-header {
+  margin-bottom: 32px;
+  border-bottom: 1px solid var(--line, #e2dcd2);
+  padding-bottom: 24px;
+}
+
+.blog-post-header h1 {
+  font-family: var(--font-serif, 'Playfair Display', Georgia, serif);
+  font-size: clamp(28px, 4vw, 40px);
+  color: var(--ink, #1f2421);
+  line-height: 1.25;
+  margin: 12px 0 16px;
+}
+
+.blog-post-excerpt {
+  font-size: clamp(16px, 2.2vw, 19px);
+  color: var(--muted, #444);
+  line-height: 1.6;
+  font-style: italic;
+  margin-bottom: 20px;
+}
+
+.blog-post-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 13px;
+  color: var(--muted, #777);
+}
+
+.blog-post-author {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.blog-post-author__avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--wine, #8f2d2a);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.blog-post-share {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.blog-share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface, #fff);
+  border: 1px solid var(--line, #e2dcd2);
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  color: var(--ink, #333);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.blog-share-btn:hover {
+  border-color: var(--wine, #8f2d2a);
+  color: var(--wine, #8f2d2a);
+}
+
+/* Maqola Asosiy Matni (Typography) */
+.blog-post-body {
+  font-family: var(--font-reader, 'Source Serif 4', Georgia, serif);
+  font-size: 18px;
+  line-height: 1.8;
+  color: #242424;
+  margin-bottom: 48px;
+}
+
+.blog-post-body h2 {
+  font-family: var(--font-serif, 'Playfair Display', Georgia, serif);
+  font-size: 26px;
+  color: var(--ink, #1f2421);
+  margin: 36px 0 16px;
+  line-height: 1.3;
+}
+
+.blog-post-body h3 {
+  font-family: var(--font-serif, 'Playfair Display', Georgia, serif);
+  font-size: 21px;
+  color: var(--ink, #1f2421);
+  margin: 28px 0 12px;
+  line-height: 1.35;
+}
+
+.blog-post-body p {
+  margin: 0 0 20px;
+}
+
+.blog-post-body blockquote {
+  margin: 24px 0;
+  padding: 16px 24px;
+  background: rgba(143, 45, 42, 0.05);
+  border-left: 4px solid var(--wine, #8f2d2a);
+  border-radius: 0 8px 8px 0;
+  font-style: italic;
+  font-size: 19px;
+  color: #2d2d2d;
+}
+
+.blog-post-body ul, .blog-post-body ol {
+  margin: 0 0 20px 24px;
+  padding: 0;
+}
+
+.blog-post-body li {
+  margin-bottom: 8px;
+}
+
+/* Muallif va Kutubxona Banneri */
+.blog-cta-box {
+  background: linear-gradient(135deg, #f7f4ee 0%, #efeae0 100%);
+  border: 1px solid var(--line, #e2dcd2);
+  border-radius: 14px;
+  padding: 24px;
+  margin-bottom: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.blog-cta-box h3 {
+  font-size: 18px;
+  margin: 0 0 4px;
+}
+
+.blog-cta-box p {
+  color: var(--muted, #666);
+  font-size: 14px;
+  margin: 0;
+}
+
+/* Tavsiya etiladigan maqolalar */
+.blog-related-section {
+  border-top: 1px solid var(--line, #e2dcd2);
+  padding-top: 36px;
+}
+
+.blog-related-section h2 {
+  font-family: var(--font-serif, 'Playfair Display', Georgia, serif);
+  font-size: 24px;
+  margin: 0 0 22px;
+}
+
+/* Mobil moslashuv */
+@media (max-width: 768px) {
+  .blog-featured-card {
+    grid-template-columns: 1fr;
+    padding: 20px;
+  }
+  .blog-featured-card__right {
+    min-height: 150px;
+  }
+  .blog-filters-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .blog-search-box {
+    max-width: 100%;
+  }
+  .blog-grid {
+    grid-template-columns: 1fr;
+  }
+  .blog-post-body {
+    font-size: 17px;
+  }
+}

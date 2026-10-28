@@ -14,6 +14,10 @@ export function Footer() {
           </div>
         </div>
         <div className="footer-links-group">
+          <Link href="/blog" className="footer-link-item">
+            Adabiy blog
+          </Link>
+          <span>•</span>
           <Link href="/about" className="footer-link-item">
             Biz haqimizda
           </Link>

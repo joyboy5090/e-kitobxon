@@ -20,6 +20,8 @@ import { FavoritesPage, ReadingListPage } from './pages/FavoritesPage.jsx'
 import { BookDetailPage } from './pages/BookDetailPage.jsx'
 import { ReaderPage } from './pages/ReaderPage.jsx'
 import { ProfilePage } from './pages/ProfilePage.jsx'
+import { BlogPage } from './pages/BlogPage.jsx'
+import { BlogPostPage } from './pages/BlogPostPage.jsx'
 import { apiRequest } from './components/common/api.js'
 import { safeNextPath } from './components/common/Link.jsx'
 
@@ -292,6 +294,10 @@ function App() {
         ? <PdfBookReader book={book} startPage={reading[bookId]?.chapter ?? (bookmarks[bookId] ?? 0)} bookmarkedPage={bookmarks[bookId] ?? null} loadPage={(pageIndex) => apiRequest(`/api/books/${encodeURIComponent(bookId)}/pages/${pageIndex + 1}`)} recordReadPage={(pageIndex) => recordReadPage(bookId, pageIndex + 1)} onProgress={(pageIndex, pageCount) => updatePdfPage(bookId, pageIndex, pageCount)} onBookmark={(pageIndex) => toggleBookmark(bookId, pageIndex)} onComplete={() => { markCompleted(bookId); navigate(`/books/${bookId}`) }} onExit={() => navigate(`/books/${bookId}`)} />
         : <ReaderPage book={book} progress={reading[bookId]} bookmark={bookmarks[bookId]} preferences={preferences} onPreferences={setPreferences} onChapter={updateChapter} onBookmark={toggleBookmark} onComplete={markCompleted} />
       : <AuthRequired reading onSignIn={() => signInFor(route)} onSignUp={() => navigate(`/sign-up?next=${encodeURIComponent(route)}`)} />
+  } else if (path === '/blog') {
+    screen = <BlogPage onNavigate={navigate} />
+  } else if (path.startsWith('/blog/')) {
+    screen = <BlogPostPage slug={path.replace('/blog/', '')} onNavigate={navigate} />
   } else if (path === '/about') {
     screen = <AboutPage onNavigate={navigate} />
   } else if (path === '/support' || path === '/contact') {

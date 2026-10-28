@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import {
   ArrowLeft, BookCopy, BookOpen, Check, CircleAlert, HardDrive,
-  LayoutDashboard, LogOut, Megaphone, MessageSquareMore, ScrollText, UsersRound, X
+  LayoutDashboard, LogOut, Megaphone, MessageSquareMore, Newspaper, ScrollText, UsersRound, X
 } from 'lucide-react'
 import './admin-panel.css'
 import { OverviewSection } from './admin/OverviewSection.jsx'
@@ -11,10 +11,12 @@ import { AuditSection } from './admin/AuditSection.jsx'
 import { SupportSection } from './admin/SupportSection.jsx'
 import { BackupsSection } from './admin/BackupsSection.jsx'
 import { AdsSection } from './admin/AdsSection.jsx'
+import { BlogSection } from './admin/BlogSection.jsx'
 
 const TABS = [
   ['overview', 'Boshqaruv', LayoutDashboard, 'Statistika va umumiy ko‘rinish'],
   ['books', 'Kitoblar', BookCopy, 'Kutubxonani boshqarish'],
+  ['blog', 'Maqolalar (Blog)', Newspaper, 'Adabiy maqolalar, taqrizlar va yangiliklar'],
   ['users', 'Foydalanuvchilar', UsersRound, 'Akkauntlarni boshqarish'],
   ['audit', 'Faoliyat jurnali', ScrollText, 'Adminlar bajargan amallar'],
   ['support', 'Qo‘llab-quvvatlash', MessageSquareMore, 'Murojaatlar va ko‘p beriladigan savollar'],
@@ -103,6 +105,9 @@ function AdminDashboard({
         )}
         {tab === 'books' && (
           <BooksSection books={books} loading={loading} onUpload={onUpload} onChanged={onBooksChanged} api={api} notify={notify} />
+        )}
+        {tab === 'blog' && (
+          <BlogSection api={api} notify={notify} />
         )}
         {tab === 'users' && (
           <UsersSection api={api} notify={notify} currentUser={currentUser} />
