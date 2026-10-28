@@ -1,0 +1,4 @@
+# Google AdSense authorized digital seller verification
+# https://e-kitobxon.uz/ads.txt
+# Google AdSense hisobingiz tasdiqlangach, quyidagi formatda pub-ID kiritiladi:
+# google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0

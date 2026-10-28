@@ -14,6 +14,7 @@ import AboutPage from './AboutPage.jsx'
 import NotFoundPage from './NotFoundPage.jsx'
 import PdfBookReader from './PdfBookReader.jsx'
 import CaptchaField from './CaptchaField.jsx'
+import AdBanner from './AdBanner.jsx'
 
 const readStore = (key, fallback) => {
   try {
@@ -597,6 +598,8 @@ function HomePage({ books, genres, favorites, readingList, onFavorite, onCart, o
         <div className="book-grid">{books.slice(0, 3).map((book) => <BookCard key={book.id} book={book} favorite={favorites.includes(book.id)} inReadingList={readingList.includes(book.id)} canRead={canRead} onFavorite={onFavorite} onCart={onCart} onStart={onStart} onOpen={onOpen} />)}</div>
       </section>
 
+      <AdBanner placement="home_top" />
+
       <section className="section">
         <SectionHeading kicker="Kayfiyatingizga mosini toping" title="Janr bo‘yicha kashf eting" />
         <div className="genre-strip">{genres.map((genre, index) => {
@@ -706,6 +709,7 @@ function BookDetail({ book, favorites, readingList, reading, onFavorite, onCart,
         <SectionHeading kicker="Mutolaa uchun" title="Asar haqida" />
         <p className="detail-description" style={{ maxWidth: 760 }}>{book.description} Ushbu sahifadagi parcha tanishuv uchun berilgan qisqa namuna bo‘lib, to‘liq nashr matni emas.</p>
       </div>
+      <AdBanner placement="book_detail" />
       <BookReviews bookId={book.id} user={user} csrfToken={csrfToken} onSignIn={onSignIn} />
     </div>
   )

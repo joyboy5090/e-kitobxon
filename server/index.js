@@ -16,6 +16,7 @@ import { createServer as createViteServer } from 'vite'
 import { books } from '../src/catalog.js'
 import { registerAdminRoutes, logAdminAction } from './adminRoutes.js'
 import { registerSupportRoutes } from './supportRoutes.js'
+import { registerAdRoutes } from './adRoutes.js'
 import { notifyNewUser, notifyNewReview } from './telegram.js'
 import { generateCaptcha, verifyCaptcha } from './captcha.js'
 import { startAutoBackupScheduler } from './backup.js'
@@ -906,6 +907,21 @@ for (const folder of ['wasm', 'cmaps', 'standard_fonts', 'iccs']) {
 
 registerAdminRoutes(app, { pool, objectStorage, requireCsrf, requireUser, requireAdmin, asyncRoute, mapDynamicBook })
 registerSupportRoutes(app, { pool, requireCsrf, requireUser, requireAdmin, asyncRoute, logAdminAction, verifyCaptcha })
+registerAdRoutes(app, { pool, requireCsrf, requireUser, requireAdmin, asyncRoute, logAdminAction })
+
+// Google AdSense ads.txt fayli
+app.get('/ads.txt', async (_req, res) => {
+  try {
+    const { rows } = await pool.query("SELECT value FROM site_settings WHERE key = 'adsense_client_id'")
+    const clientId = rows[0]?.value?.trim()
+    if (clientId) {
+      const pubId = clientId.replace(/^ca-/, '')
+      res.type('text/plain').send(`google.com, ${pubId}, DIRECT, f08c47fec0942fa0\n`)
+      return
+    }
+  } catch {}
+  res.sendFile(path.join(projectRoot, 'public', 'ads.txt'))
+})
 
 // Dinamik Sitemap (Google va qidiruv tizimlari uchun barcha kitoblar bilan)
 app.get('/sitemap.xml', async (_req, res) => {
