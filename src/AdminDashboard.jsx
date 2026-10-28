@@ -1392,7 +1392,7 @@ function BackupsSection({ api, notify }) {
 
 function AdsSection({ api, notify }) {
   const [banners, setBanners] = useState([])
-  const [adsense, setAdsense] = useState({ clientId: '', enabled: false })
+  const [adsense, setAdsense] = useState({ clientId: 'ca-pub-1115153746763009', enabled: true })
   const [loading, setLoading] = useState(true)
   const [savingAdsense, setSavingAdsense] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
@@ -1412,7 +1412,10 @@ function AdsSection({ api, notify }) {
     try {
       const data = await api('/api/admin/ads')
       setBanners(data.banners || [])
-      setAdsense(data.adsense || { clientId: '', enabled: false })
+      setAdsense({
+        clientId: data.adsense?.clientId || 'ca-pub-1115153746763009',
+        enabled: data.adsense?.enabled ?? true,
+      })
     } catch (err) {
       notify('error', errorText(err))
     } finally {

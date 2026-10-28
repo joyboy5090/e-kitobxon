@@ -183,3 +183,103 @@
 .ap-badge--info { background: #e3edf8; color: #3a5f8a; }
 .ap-badge--warning { background: #fef3e0; color: #9a6b2a; }
 
+/* Zaxira va Reklama bo'limlari uchun uslublar */
+.ap-section {
+  background: var(--ap-card);
+  border: 1px solid var(--ap-line);
+  border-radius: var(--ap-radius);
+  padding: 22px;
+  margin-bottom: 20px;
+}
+.ap-section__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.ap-section__head h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ap-ink);
+  margin-bottom: 4px;
+}
+.ap-section__head p {
+  font-size: 13px;
+  color: var(--ap-muted);
+}
+.ap-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+  margin: 16px 0;
+}
+.ap-stat-card {
+  background: #faf6f0;
+  border: 1px solid var(--ap-line);
+  border-radius: 10px;
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ap-stat-card span {
+  font-size: 12px;
+  color: var(--ap-muted);
+  font-weight: 500;
+}
+.ap-stat-card strong {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--ap-ink);
+  letter-spacing: -0.02em;
+}
+.ap-stat-card small {
+  font-size: 11px;
+  color: var(--ap-muted);
+}
+.ap-input, .ap-select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--ap-line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ap-ink);
+  font-size: 14px;
+}
+.ap-input:focus, .ap-select:focus {
+  outline: 2px solid #d9b9ae;
+  border-color: var(--ap-accent);
+}
+.ap-label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 13px;
+}
+.ap-tag {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #efe8df;
+  color: #5f5247;
+}
+.ap-tag--active {
+  background: #e1f0e7;
+  color: #2f6a4b;
+}
+.ap-btn--success {
+  background: #e1f0e7;
+  border-color: #badfc5;
+  color: #2f6a4b;
+}
+.ap-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
