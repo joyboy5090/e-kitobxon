@@ -25,6 +25,8 @@ const TABLES_TO_BACKUP = [
   'support_replies',
   'faq_items',
   'admin_audit_log',
+  'ad_banners',
+  'site_settings',
 ]
 
 export async function ensureBackupDir() {

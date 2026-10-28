@@ -29,10 +29,12 @@ export async function initAdTables(pool) {
     await pool.query(`
       INSERT INTO site_settings (key, value)
       VALUES ('adsense_client_id', 'ca-pub-1115153746763009')
-      ON CONFLICT (key) DO UPDATE SET value = 'ca-pub-1115153746763009' WHERE site_settings.value = '';
+      ON CONFLICT (key) DO UPDATE SET value = 'ca-pub-1115153746763009' WHERE site_settings.value = ''
+    `)
+    await pool.query(`
       INSERT INTO site_settings (key, value)
       VALUES ('adsense_enabled', 'true')
-      ON CONFLICT (key) DO NOTHING;
+      ON CONFLICT (key) DO NOTHING
     `)
 
     // Namuna banner (agar jadval bo'sh bo'lsa)
@@ -221,14 +223,18 @@ export function registerAdRoutes(app, deps) {
     const clientId = typeof req.body?.clientId === 'string' ? req.body.clientId.trim() : ''
     const enabled = req.body?.enabled ? 'true' : 'false'
 
-    await pool.query(`
-      INSERT INTO site_settings (key, value, updated_at)
-      VALUES ('adsense_client_id', $1, now())
-      ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now();
-      INSERT INTO site_settings (key, value, updated_at)
-      VALUES ('adsense_enabled', $2, now())
-      ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now();
-    `, [clientId, enabled])
+    await pool.query(
+      `INSERT INTO site_settings (key, value, updated_at)
+       VALUES ('adsense_client_id', $1, now())
+       ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now()`,
+      [clientId],
+    )
+    await pool.query(
+      `INSERT INTO site_settings (key, value, updated_at)
+       VALUES ('adsense_enabled', $1, now())
+       ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now()`,
+      [enabled],
+    )
 
     await logAdminAction(pool, req.user, 'adsense.update', 'settings', clientId, `Enabled: ${enabled}`)
 
