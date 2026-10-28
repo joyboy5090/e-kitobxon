@@ -17,6 +17,7 @@ import { books } from '../src/catalog.js'
 import { registerAdminRoutes, logAdminAction } from './adminRoutes.js'
 import { registerSupportRoutes } from './supportRoutes.js'
 import { notifyNewUser, notifyNewReview } from './telegram.js'
+import { generateCaptcha, verifyCaptcha } from './captcha.js'
 
 const { Pool } = pg
 const scrypt = promisify(scryptCallback)
@@ -551,7 +552,30 @@ app.get('/api/auth/me', asyncRoute(async (req, res) => {
   res.json({ user, csrfToken: req.session.csrfToken })
 }))
 
+app.get('/api/auth/captcha', (req, res) => {
+  const { svg, answer, expiresAt } = generateCaptcha()
+  req.session.captchaAnswer = answer
+  req.session.captchaExpires = expiresAt
+  res.json({ svg })
+})
+
 app.post('/api/auth/register', authLimiter, requireCsrf, asyncRoute(async (req, res) => {
+  // Honeypot spam tekshiruvi (botlar avtomatik to'ldirib yuboradigan yashirin maydon)
+  if (req.body?.hp_website) {
+    return res.status(400).json({ error: 'Spam aniqlandi.' })
+  }
+
+  // Time-trap (odam 1 soniyadan tez forma to'ldira olmaydi)
+  const renderedAt = Number(req.body?.renderedAt)
+  if (renderedAt && Date.now() - renderedAt < 1000) {
+    return res.status(400).json({ error: 'Juda tez yuborildi. Iltimos, qayta urinib ko‘ring.' })
+  }
+
+  // Captcha tekshiruvi
+  if (!verifyCaptcha(req, req.body?.captcha)) {
+    return res.status(400).json({ error: 'Xavfsizlik kodi (CAPTCHA) noto‘g‘ri yoki eskirgan. Qaytadan hisoblab kiriting.' })
+  }
+
   const username = typeof req.body?.username === 'string' ? req.body.username.trim() : ''
   const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : ''
   const password = typeof req.body?.password === 'string' ? req.body.password : ''
@@ -669,6 +693,7 @@ app.get('/api/books/:bookId/reviews', asyncRoute(async (req, res) => {
 }))
 
 app.post('/api/books/:bookId/reviews', requireCsrf, requireUser, asyncRoute(async (req, res) => {
+  if (req.body?.hp_website) return res.status(400).json({ error: 'Spam aniqlandi.' })
   if (!await bookExists(req.params.bookId)) return res.status(404).json({ error: 'Kitob topilmadi.' })
   const rating = Number(req.body?.rating)
   const comment = typeof req.body?.comment === 'string' ? req.body.comment.trim() : ''
@@ -879,7 +904,7 @@ for (const folder of ['wasm', 'cmaps', 'standard_fonts', 'iccs']) {
 }
 
 registerAdminRoutes(app, { pool, objectStorage, requireCsrf, requireUser, requireAdmin, asyncRoute, mapDynamicBook })
-registerSupportRoutes(app, { pool, requireCsrf, requireUser, requireAdmin, asyncRoute, logAdminAction })
+registerSupportRoutes(app, { pool, requireCsrf, requireUser, requireAdmin, asyncRoute, logAdminAction, verifyCaptcha })
 
 // Dinamik Sitemap (Google va qidiruv tizimlari uchun barcha kitoblar bilan)
 app.get('/sitemap.xml', async (_req, res) => {

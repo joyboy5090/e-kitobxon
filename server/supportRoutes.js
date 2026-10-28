@@ -91,7 +91,7 @@ export async function initSupportTables(pool) {
 }
 
 export function registerSupportRoutes(app, deps) {
-  const { pool, requireCsrf, requireUser, requireAdmin, asyncRoute, logAdminAction } = deps
+  const { pool, requireCsrf, requireUser, requireAdmin, asyncRoute, logAdminAction, verifyCaptcha } = deps
   const guard = [requireUser, requireAdmin]
 
   initSupportTables(pool)
@@ -180,6 +180,18 @@ export function registerSupportRoutes(app, deps) {
 
   // Yangi murojaat yuborish
   app.post('/api/support/tickets', requireCsrf, requireUser, asyncRoute(async (req, res) => {
+    // Spam / bot himoyasi
+    if (req.body?.hp_website) {
+      return res.status(400).json({ error: 'Spam aniqlandi.' })
+    }
+    const renderedAt = Number(req.body?.renderedAt)
+    if (renderedAt && Date.now() - renderedAt < 1200) {
+      return res.status(400).json({ error: 'Juda tez yuborildi. Iltimos, qayta urinib ko‘ring.' })
+    }
+    if (typeof verifyCaptcha === 'function' && !verifyCaptcha(req, req.body?.captcha)) {
+      return res.status(400).json({ error: 'Xavfsizlik kodi (CAPTCHA) noto‘g‘ri yoki eskirgan. Qaytadan hisoblab kiriting.' })
+    }
+
     const type = req.body?.type
     const subject = typeof req.body?.subject === 'string' ? req.body.subject.trim() : ''
     const message = typeof req.body?.message === 'string' ? req.body.message.trim() : ''

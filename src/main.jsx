@@ -13,6 +13,7 @@ import LegalPage from './LegalPage.jsx'
 import AboutPage from './AboutPage.jsx'
 import NotFoundPage from './NotFoundPage.jsx'
 import PdfBookReader from './PdfBookReader.jsx'
+import CaptchaField from './CaptchaField.jsx'
 
 const readStore = (key, fallback) => {
   try {
@@ -348,6 +349,8 @@ function AuthPage({ mode, csrfToken, nextPath, onAuthenticated }) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [gender, setGender] = useState('')
+  const [captcha, setCaptcha] = useState('')
+  const [renderedAt] = useState(() => Date.now())
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
   const next = safeNextPath(nextPath)
@@ -359,7 +362,7 @@ function AuthPage({ mode, csrfToken, nextPath, onAuthenticated }) {
     try {
       const data = await apiRequest(isRegister ? '/api/auth/register' : '/api/auth/login', {
         method: 'POST',
-        body: isRegister ? { email, username, password, gender } : { username, password },
+        body: isRegister ? { email, username, password, gender, captcha, renderedAt } : { username, password },
         csrfToken,
       })
       await onAuthenticated(data, nextPath || (!isRegister && data.user.role === 'admin' ? '/admin' : '/'))
@@ -400,6 +403,7 @@ function AuthPage({ mode, csrfToken, nextPath, onAuthenticated }) {
             Parol
             <input type="password" name="password" autoComplete={isRegister ? 'new-password' : 'current-password'} placeholder={isRegister ? 'Kamida 8 belgi' : 'Parolingiz'} value={password} onChange={(event) => setPassword(event.target.value)} minLength={isRegister ? 8 : undefined} maxLength={128} required />
           </label>
+          {isRegister && <CaptchaField value={captcha} onChange={setCaptcha} />}
           {error && <div className="form-error" role="alert">{error}</div>}
           <button className="button-primary auth-submit" type="submit" disabled={saving}>{saving ? 'Kutib turing…' : isRegister ? 'Ro‘yxatdan o‘tish' : 'Kirish'}</button>
           {isRegister && (

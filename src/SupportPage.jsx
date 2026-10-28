@@ -17,6 +17,7 @@ import {
   ExternalLink,
   Headphones
 } from 'lucide-react'
+import CaptchaField from './CaptchaField.jsx'
 import './support.css'
 
 async function apiRequest(path, { method = 'GET', body, csrfToken } = {}) {
@@ -59,6 +60,8 @@ export default function SupportPage({ user, csrfToken, onSignIn }) {
   const [ticketType, setTicketType] = useState('suggestion')
   const [subject, setSubject] = useState('')
   const [message, setMessage] = useState('')
+  const [captcha, setCaptcha] = useState('')
+  const [renderedAt] = useState(() => Date.now())
   const [submitting, setSubmitting] = useState(false)
   const [formNotice, setFormNotice] = useState(null)
 
@@ -147,12 +150,16 @@ export default function SupportPage({ user, csrfToken, onSignIn }) {
       setFormNotice({ type: 'error', text: 'Iltimos, xabaringizni yozing.' })
       return
     }
+    if (!captcha.trim()) {
+      setFormNotice({ type: 'error', text: 'Iltimos, xavfsizlik kodini hisoblab kiriting.' })
+      return
+    }
 
     setSubmitting(true)
     try {
       const res = await apiRequest('/api/support/tickets', {
         method: 'POST',
-        body: { type: ticketType, subject: subject.trim(), message: message.trim() },
+        body: { type: ticketType, subject: subject.trim(), message: message.trim(), captcha, renderedAt },
         csrfToken,
       })
 
@@ -162,6 +169,7 @@ export default function SupportPage({ user, csrfToken, onSignIn }) {
       })
       setSubject('')
       setMessage('')
+      setCaptcha('')
       // Ro'yxatni yangilash
       loadMyTickets()
     } catch (err) {
@@ -472,6 +480,8 @@ export default function SupportPage({ user, csrfToken, onSignIn }) {
                     required
                   />
                 </label>
+
+                <CaptchaField value={captcha} onChange={setCaptcha} />
 
                 {formNotice && (
                   <div
