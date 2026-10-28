@@ -28,10 +28,10 @@ export async function initAdTables(pool) {
     // Boshlang'ich AdSense sozlamasi
     await pool.query(`
       INSERT INTO site_settings (key, value)
-      VALUES ('adsense_client_id', '')
-      ON CONFLICT (key) DO NOTHING;
+      VALUES ('adsense_client_id', 'ca-pub-1115153746763009')
+      ON CONFLICT (key) DO UPDATE SET value = 'ca-pub-1115153746763009' WHERE site_settings.value = '';
       INSERT INTO site_settings (key, value)
-      VALUES ('adsense_enabled', 'false')
+      VALUES ('adsense_enabled', 'true')
       ON CONFLICT (key) DO NOTHING;
     `)
 
