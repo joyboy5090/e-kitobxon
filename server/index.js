@@ -929,6 +929,12 @@ app.get('/robots.txt', (_req, res) => {
 `User-agent: *
 Allow: /
 
+User-agent: Googlebot
+Allow: /
+
+User-agent: Google-InspectionTool
+Allow: /
+
 Sitemap: https://e-kitobxon.uz/sitemap.xml
 `
   )
