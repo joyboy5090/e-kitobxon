@@ -3,7 +3,7 @@ import {
   Check, CircleAlert, Clock, Edit3, Eye, FileText, Globe,
   Newspaper, Plus, RefreshCw, Trash2, X
 } from 'lucide-react'
-import { ConfirmDialog, Modal, Skeleton } from './AdminCommon.jsx'
+import { ConfirmDialog, formatDate, Modal, Skeleton } from './AdminCommon.jsx'
 
 const CATEGORIES = [
   'Adabiyot tarixi',
@@ -176,7 +176,7 @@ export function BlogSection({ api, notify }) {
                       )}
                     </td>
                     <td className="ap-subtle">
-                      {new Date(post.created_at).toLocaleDateString('uz-UZ')}
+                      {formatDate(post.created_at)}
                     </td>
                     <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
                       <a

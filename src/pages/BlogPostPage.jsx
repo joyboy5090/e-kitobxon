@@ -2,13 +2,8 @@ import React, { useEffect, useState } from 'react'
 import { ArrowLeft, BookOpen, Check, ChevronRight, Clock, Copy, Eye, Feather, MessageCircle, Share2 } from 'lucide-react'
 import { Link } from '../components/common/Link.jsx'
 import { apiRequest } from '../components/common/api.js'
+import { formatDate } from '../components/common/dateUtils.js'
 import '../blog.css'
-
-function formatDate(dateStr) {
-  if (!dateStr) return ''
-  const date = new Date(dateStr)
-  return date.toLocaleDateString('uz-UZ', { day: 'numeric', month: 'long', year: 'numeric' })
-}
 
 // Oddiy markdown parser (sarlavhalar, iqtiboslar, ro'yxatlar va paragraflar uchun)
 function renderMarkdownContent(content) {

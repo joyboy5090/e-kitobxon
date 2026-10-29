@@ -38,16 +38,10 @@ async function apiRequest(path, { method = 'GET', body, csrfToken } = {}) {
   return data
 }
 
+import { formatDateTime } from './components/common/dateUtils.js'
+
 function formatDate(dateStr) {
-  if (!dateStr) return ''
-  try {
-    return new Intl.DateTimeFormat('uz-UZ', {
-      dateStyle: 'medium',
-      timeStyle: 'short',
-    }).format(new Date(dateStr))
-  } catch {
-    return dateStr
-  }
+  return formatDateTime(dateStr)
 }
 
 export default function SupportPage({ user, csrfToken, onSignIn }) {

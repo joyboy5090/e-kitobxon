@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Star } from 'lucide-react'
 import { SectionHeading } from './BookCard.jsx'
 import { apiRequest } from './common/api.js'
+import { formatDate } from './common/dateUtils.js'
 
 export function BookReviews({ bookId, user, csrfToken, onSignIn }) {
   const [data, setData] = useState({ average: 0, count: 0, reviews: [], myReview: null })
@@ -98,7 +99,7 @@ export function BookReviews({ bookId, user, csrfToken, onSignIn }) {
             <article className="review-item" key={`${review.username}-${review.createdAt}-${index}`}>
               <div className="review-heading">
                 <strong>{review.username}</strong>
-                <span>{new Intl.DateTimeFormat('uz-UZ', { dateStyle: 'medium' }).format(new Date(review.updatedAt || review.createdAt))}</span>
+                <span>{formatDate(review.updatedAt || review.createdAt)}</span>
               </div>
               <div className="review-stars" aria-label={`${review.rating} yulduz`}>
                 {[1, 2, 3, 4, 5].map((value) => <Star key={value} size={14} fill={value <= review.rating ? 'currentColor' : 'none'} />)}

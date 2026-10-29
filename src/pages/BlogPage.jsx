@@ -2,13 +2,8 @@ import React, { useEffect, useState } from 'react'
 import { ArrowRight, BookOpen, Clock, Eye, Feather, MessageSquare, Newspaper, Search, Sparkles } from 'lucide-react'
 import { Link } from '../components/common/Link.jsx'
 import { apiRequest } from '../components/common/api.js'
+import { formatDate } from '../components/common/dateUtils.js'
 import '../blog.css'
-
-function formatDate(dateStr) {
-  if (!dateStr) return ''
-  const date = new Date(dateStr)
-  return date.toLocaleDateString('uz-UZ', { day: 'numeric', month: 'long', year: 'numeric' })
-}
 
 export function BlogPage({ onNavigate }) {
   const [posts, setPosts] = useState([])
