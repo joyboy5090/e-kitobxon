@@ -73,13 +73,13 @@ export function BlogSection({ api, notify }) {
       if (editingPost.id) {
         await api(`/api/admin/blog/${editingPost.id}`, {
           method: 'PUT',
-          body: JSON.stringify(editingPost),
+          body: editingPost,
         })
         notify('success', 'Maqola muvaffaqiyatli yangilandi')
       } else {
         await api('/api/admin/blog', {
           method: 'POST',
-          body: JSON.stringify(editingPost),
+          body: editingPost,
         })
         notify('success', 'Yangi maqola yaratildi')
       }

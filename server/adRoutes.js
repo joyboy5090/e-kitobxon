@@ -99,20 +99,34 @@ export function registerAdRoutes(app, deps) {
   // Ko'rishlar sonini oshirish
   app.post('/api/ads/:id/view', asyncRoute(async (req, res) => {
     const { id } = req.params
-    await pool.query(
-      `UPDATE ad_banners SET views_count = views_count + 1 WHERE id = $1`,
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+    if (!uuidRegex.test(id)) {
+      return res.status(404).json({ error: 'Banner topilmadi' })
+    }
+    const result = await pool.query(
+      `UPDATE ad_banners SET views_count = views_count + 1 WHERE id = $1 RETURNING id`,
       [id],
     )
+    if (!result.rows.length) {
+      return res.status(404).json({ error: 'Banner topilmadi' })
+    }
     res.json({ ok: true })
   }))
 
   // Bosishlar sonini oshirish
   app.post('/api/ads/:id/click', asyncRoute(async (req, res) => {
     const { id } = req.params
-    await pool.query(
-      `UPDATE ad_banners SET clicks_count = clicks_count + 1 WHERE id = $1`,
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+    if (!uuidRegex.test(id)) {
+      return res.status(404).json({ error: 'Banner topilmadi' })
+    }
+    const result = await pool.query(
+      `UPDATE ad_banners SET clicks_count = clicks_count + 1 WHERE id = $1 RETURNING id`,
       [id],
     )
+    if (!result.rows.length) {
+      return res.status(404).json({ error: 'Banner topilmadi' })
+    }
     res.json({ ok: true })
   }))
 
@@ -167,6 +181,9 @@ export function registerAdRoutes(app, deps) {
     }
     if (!linkUrl) {
       return res.status(400).json({ error: 'Yo‘naltirish havolasini (link) kiriting.' })
+    }
+    if (!/^https?:\/\//i.test(linkUrl)) {
+      return res.status(400).json({ error: 'Havola faqat http:// yoki https:// bilan boshlanishi kerak.' })
     }
 
     const id = randomUUID()

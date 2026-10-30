@@ -60,7 +60,7 @@ export default function LegalPage({ initialTab = 'privacy', onNavigate }) {
 function PrivacyContent() {
   return (
     <>
-      <span className="lp-date">Oxirgi yangilanish: 2026-yil 26-oktabr</span>
+      <span className="lp-date">Oxirgi yangilanish: 2026-yil 30-oktabr</span>
 
       <div className="lp-notice-box">
         <strong>Xulosa:</strong> Biz sizning shaxsiy daxlsizligingizni qadrlaymiz. Parollaringiz zamonaviy
@@ -87,18 +87,24 @@ function PrivacyContent() {
         <li>Kutubxonadagi kitoblar o‘qilishining umumiy statistik tahlilini yuritish.</li>
       </ul>
 
-      <h2>3. Cookie va sessiyalar</h2>
+      <h2>3. Cookie fayllari va Tahliliy xizmatlar (Google Analytics &amp; AdSense)</h2>
       <p>
         Platforma tizimga kirish holatini saqlash uchun xavfsiz <code>HTTP-only</code> cookie fayllaridan foydalanadi.
         Sessiyalar ma’lumotlar bazasida 7 kun davomida saqlanadi va foydalanuvchi tizimdan chiqqanida (Logout) yoki hisob
         bloklanganda avtomatik ravishda butunlay o‘chiriladi.
+      </p>
+      <p>
+        Sayt faoliyatini tahlil qilish, tashriflar sonini hisoblash va platforma faoliyatini qo‘llab-quvvatlash maqsadida
+        saytda <strong>Google Analytics (GA4)</strong> va <strong>Google AdSense</strong> xizmatlaridan foydalaniladi.
+        Ushbu xizmatlar faqat anonimlashtirilgan texnik ko‘rsatkichlarni (brauzer turi, qurilma ekrani, umumiy geografik joylashuv va sayt sahifalarining ko‘rilishi)
+        tahlil qiladi. Ular hech qanday shaxsiy ma’lumotlarga (parollar, shaxsiy yozishmalar yoki shaxsni tasdiqlovchi ma’lumotlarga) ega emas va ularni yig‘maydi.
       </p>
 
       <h2>4. Ma’lumotlar xavfsizligi</h2>
       <p>
         Platformada CSRF (saytlararo so‘rovlarni soxtalashtirish) hujumlaridan himoya qilish uchun maxsus tokenlar tizimi,
         takroriy shubhali urinishlarga qarshi so‘rovlar sonini cheklovchi (Rate Limiting) mexanizmlar hamda xavfsiz HTTP headerlar
-        (Helmet) o‘rnatilgan.
+        (Helmet va Frameguard) o‘rnatilgan.
       </p>
 
       <h2>5. Foydalanuvchining huquqlari</h2>

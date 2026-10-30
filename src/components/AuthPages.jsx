@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { ArrowLeft, BookOpen, CircleUserRound, LogIn } from 'lucide-react'
 import { Link, safeNextPath } from './common/Link.jsx'
 import { apiRequest } from './common/api.js'
@@ -11,9 +11,11 @@ export function AuthPage({ mode, csrfToken, nextPath, onAuthenticated }) {
   const [password, setPassword] = useState('')
   const [gender, setGender] = useState('')
   const [captcha, setCaptcha] = useState('')
+  const [hpWebsite, setHpWebsite] = useState('')
   const [renderedAt] = useState(() => Date.now())
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
+  const refreshCaptchaRef = useRef(null)
   const next = safeNextPath(nextPath)
 
   const submit = async (event) => {
@@ -23,12 +25,16 @@ export function AuthPage({ mode, csrfToken, nextPath, onAuthenticated }) {
     try {
       const data = await apiRequest(isRegister ? '/api/auth/register' : '/api/auth/login', {
         method: 'POST',
-        body: isRegister ? { email, username, password, gender, captcha, renderedAt } : { username, password },
+        body: isRegister ? { email, username, password, gender, captcha, renderedAt, hp_website: hpWebsite } : { username, password },
         csrfToken,
       })
       await onAuthenticated(data, nextPath || (!isRegister && data.user.role === 'admin' ? '/admin' : '/'))
     } catch (submitError) {
       setError(submitError.message)
+      if (isRegister) {
+        setCaptcha('')
+        refreshCaptchaRef.current?.()
+      }
     } finally {
       setSaving(false)
     }
@@ -101,7 +107,7 @@ export function AuthPage({ mode, csrfToken, nextPath, onAuthenticated }) {
               required
             />
           </label>
-          {isRegister && <CaptchaField value={captcha} onChange={setCaptcha} />}
+          {isRegister && <CaptchaField value={captcha} onChange={setCaptcha} onRefreshRef={refreshCaptchaRef} hpValue={hpWebsite} onHpChange={setHpWebsite} />}
           {error && <div className="form-error" role="alert">{error}</div>}
           <button className="button-primary auth-submit" type="submit" disabled={saving}>
             {saving ? 'Kutib turing…' : isRegister ? 'Ro‘yxatdan o‘tish' : 'Kirish'}

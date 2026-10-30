@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import {
   ChevronDown,
   CircleHelp,
@@ -18,27 +18,9 @@ import {
   Headphones
 } from 'lucide-react'
 import CaptchaField from './CaptchaField.jsx'
-import './support.css'
-
-async function apiRequest(path, { method = 'GET', body, csrfToken } = {}) {
-  const headers = { Accept: 'application/json' }
-  if (body !== undefined) headers['Content-Type'] = 'application/json'
-  if (method !== 'GET') {
-    headers['X-Kitobxon-Request'] = '1'
-    headers['X-CSRF-Token'] = csrfToken || ''
-  }
-  const response = await fetch(path, {
-    method,
-    credentials: 'same-origin',
-    headers,
-    ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
-  })
-  const data = response.status === 204 ? null : await response.json().catch(() => null)
-  if (!response.ok) throw new Error(data?.error || 'So‘rovni bajarib bo‘lmadi.')
-  return data
-}
-
+import { apiRequest } from './components/common/api.js'
 import { formatDateTime } from './components/common/dateUtils.js'
+import './support.css'
 
 function formatDate(dateStr) {
   return formatDateTime(dateStr)
@@ -55,9 +37,11 @@ export default function SupportPage({ user, csrfToken, onSignIn }) {
   const [subject, setSubject] = useState('')
   const [message, setMessage] = useState('')
   const [captcha, setCaptcha] = useState('')
+  const [hpWebsite, setHpWebsite] = useState('')
   const [renderedAt] = useState(() => Date.now())
   const [submitting, setSubmitting] = useState(false)
   const [formNotice, setFormNotice] = useState(null)
+  const refreshSupportCaptchaRef = useRef(null)
 
   // Mening murojaatlarim state
   const [myTickets, setMyTickets] = useState([])
@@ -153,7 +137,7 @@ export default function SupportPage({ user, csrfToken, onSignIn }) {
     try {
       const res = await apiRequest('/api/support/tickets', {
         method: 'POST',
-        body: { type: ticketType, subject: subject.trim(), message: message.trim(), captcha, renderedAt },
+        body: { type: ticketType, subject: subject.trim(), message: message.trim(), captcha, renderedAt, hp_website: hpWebsite },
         csrfToken,
       })
 
@@ -168,6 +152,8 @@ export default function SupportPage({ user, csrfToken, onSignIn }) {
       loadMyTickets()
     } catch (err) {
       setFormNotice({ type: 'error', text: err.message || 'Xatolik yuz berdi.' })
+      setCaptcha('')
+      refreshSupportCaptchaRef.current?.()
     } finally {
       setSubmitting(false)
     }
@@ -475,7 +461,7 @@ export default function SupportPage({ user, csrfToken, onSignIn }) {
                   />
                 </label>
 
-                <CaptchaField value={captcha} onChange={setCaptcha} />
+                <CaptchaField value={captcha} onChange={setCaptcha} onRefreshRef={refreshSupportCaptchaRef} hpValue={hpWebsite} onHpChange={setHpWebsite} />
 
                 {formNotice && (
                   <div

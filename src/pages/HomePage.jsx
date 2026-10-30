@@ -12,6 +12,10 @@ export function HomePage({ books, genres, favorites, readingList, onFavorite, on
   }
   const categoryIcon = [BookOpen, Heart, Smile, Search, Atom, Globe2, Landmark, Baby]
 
+  const popularBooks = [...books]
+    .sort((a, b) => (Number(b.reviewsCount) || 0) - (Number(a.reviewsCount) || 0) || (Number(b.ratingValue) || 0) - (Number(a.ratingValue) || 0))
+    .slice(0, 3)
+
   return (
     <div className="page-content">
       <section className="hero">
@@ -43,7 +47,7 @@ export function HomePage({ books, genres, favorites, readingList, onFavorite, on
       <section className="section">
         <SectionHeading kicker="O‘quvchilar tanlovi" title="Mashhur kitoblar" link="Barcha kitoblar" href="/search?sort=popular" />
         <div className="book-grid">
-          {books.slice(0, 3).map((book) => (
+          {popularBooks.map((book) => (
             <BookCard
               key={book.id}
               book={book}
@@ -87,7 +91,7 @@ export function HomePage({ books, genres, favorites, readingList, onFavorite, on
       <section className="section" style={{ paddingTop: 0, paddingBottom: 60 }}>
         <SectionHeading kicker="Yangi nigohlar, tanish tuyg‘ular" title="Yana bir sahifa oching" link="Hammasini ko‘rish" href="/search" />
         <div className="book-grid">
-          {books.slice(3).map((book) => (
+          {books.slice(3, 9).map((book) => (
             <BookCard
               key={book.id}
               book={book}

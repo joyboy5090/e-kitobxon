@@ -184,8 +184,10 @@ export function registerSupportRoutes(app, deps) {
     if (req.body?.hp_website) {
       return res.status(400).json({ error: 'Spam aniqlandi.' })
     }
-    const renderedAt = Number(req.body?.renderedAt)
-    if (renderedAt && Date.now() - renderedAt < 1200) {
+    const serverRenderedAt = Number(req.session?.captchaGeneratedAt)
+    const clientRenderedAt = Number(req.body?.renderedAt)
+    const referenceTime = serverRenderedAt || clientRenderedAt
+    if (referenceTime && Date.now() - referenceTime < 1000) {
       return res.status(400).json({ error: 'Juda tez yuborildi. Iltimos, qayta urinib ko‘ring.' })
     }
     if (typeof verifyCaptcha === 'function' && !verifyCaptcha(req, req.body?.captcha)) {

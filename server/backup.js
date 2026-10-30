@@ -27,6 +27,7 @@ const TABLES_TO_BACKUP = [
   'admin_audit_log',
   'ad_banners',
   'site_settings',
+  'blog_posts',
 ]
 
 export async function ensureBackupDir() {
@@ -56,7 +57,7 @@ export async function createDatabaseBackup(pool, adminUsername = 'system') {
       backupData.counts[table] = rows.length
       backupData.tables[table] = rows
     } catch (err) {
-      // Agar jadval hali mavjud bo'lmasa yoki xatolik bo'lsa
+      console.warn(`Zaxira olishda ${table} jadvalini o‘qishda xatolik:`, err.message)
       backupData.counts[table] = 0
       backupData.tables[table] = []
     }
@@ -65,7 +66,8 @@ export async function createDatabaseBackup(pool, adminUsername = 'system') {
   const jsonString = JSON.stringify(backupData)
   const compressedBuffer = await gzip(Buffer.from(jsonString, 'utf-8'))
 
-  await fs.writeFile(filepath, compressedBuffer)
+  await fs.writeFile(filepath, compressedBuffer, { mode: 0o600 })
+  try { await fs.chmod(filepath, 0o600) } catch {}
   const stat = await fs.stat(filepath)
 
   // Eski nusxalarni tozalash (Retention policy)

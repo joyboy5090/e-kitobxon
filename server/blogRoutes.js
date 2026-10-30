@@ -2,7 +2,7 @@
 
 import { randomUUID } from 'node:crypto'
 
-function slugify(text) {
+export function slugify(text) {
   return String(text || '')
     .toLowerCase()
     .replace(/['’`ʼʻ]/g, '')
@@ -340,7 +340,7 @@ export function registerBlogRoutes(app, deps) {
       Boolean(is_published),
     ])
 
-    await logAdminAction(req.user.id, 'blog_post_created', { id, title: title.trim(), slug: finalSlug })
+    await logAdminAction(pool, req.user, 'blog.create', 'blog_post', id, title.trim())
     res.status(201).json(rows[0])
   }))
 
@@ -407,7 +407,7 @@ export function registerBlogRoutes(app, deps) {
       return res.status(404).json({ error: 'Maqola topilmadi' })
     }
 
-    await logAdminAction(req.user.id, 'blog_post_updated', { id, title: title.trim(), slug: finalSlug })
+    await logAdminAction(pool, req.user, 'blog.update', 'blog_post', id, title.trim())
     res.json(rows[0])
   }))
 
@@ -420,7 +420,7 @@ export function registerBlogRoutes(app, deps) {
       return res.status(404).json({ error: 'Maqola topilmadi' })
     }
 
-    await logAdminAction(req.user.id, 'blog_post_deleted', { id, title: rows[0].title, slug: rows[0].slug })
+    await logAdminAction(pool, req.user, 'blog.delete', 'blog_post', id, rows[0].title)
     res.json({ success: true, message: 'Maqola muvaffaqiyatli o‘chirildi' })
   }))
 }

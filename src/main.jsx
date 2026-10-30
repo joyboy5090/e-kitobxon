@@ -39,6 +39,7 @@ function App() {
   const [user, setUser] = useState(null)
   const [csrfToken, setCsrfToken] = useState('')
   const [authLoading, setAuthLoading] = useState(true)
+  const [booksLoading, setBooksLoading] = useState(true)
   const [library, setLibrary] = useState({})
   const [uploadedBooks, setUploadedBooks] = useState([])
   const [notice, setNotice] = useState('')
@@ -100,6 +101,9 @@ function App() {
       .catch((error) => {
         if (!cancelled) setNotice(error.message)
       })
+      .finally(() => {
+        if (!cancelled) setBooksLoading(false)
+      })
     return () => { cancelled = true }
   }, [])
 
@@ -158,10 +162,11 @@ function App() {
       return
     }
     const current = library[id]
+    const isCompleted = current?.status === 'completed'
     const saved = await saveBookState(id, {
-      status: 'reading',
+      status: isCompleted ? 'completed' : 'reading',
       chapter: current?.chapter ?? 0,
-      progress: current?.progress || 4,
+      progress: isCompleted ? 100 : (current?.progress || 4),
     })
     if (saved) navigate(`/reader/${id}`)
   }
@@ -185,11 +190,14 @@ function App() {
     })
   }
 
-  const updatePdfPage = (id, pageIndex, pageCount) => saveBookState(id, {
-    status: 'reading',
-    chapter: pageIndex,
-    progress: Math.max(1, Math.min(100, Math.round(((pageIndex + 1) / pageCount) * 100))),
-  })
+  const updatePdfPage = (id, pageIndex, pageCount) => {
+    const isCompleted = library[id]?.status === 'completed'
+    return saveBookState(id, {
+      status: isCompleted ? 'completed' : 'reading',
+      chapter: pageIndex,
+      progress: isCompleted ? 100 : Math.max(1, Math.min(100, Math.round(((pageIndex + 1) / pageCount) * 100))),
+    })
+  }
 
   const recordReadPage = (id, pageNumber) => apiRequest(`/api/books/${encodeURIComponent(id)}/read-events`, {
     method: 'POST',
@@ -318,7 +326,9 @@ function App() {
     screen = <NotFoundPage onNavigate={navigate} />
   }
 
-  if (authLoading) return <div className="app-loading"><BookOpen size={22} /> Kitobxon yuklanmoqda…</div>
+  if (authLoading || (booksLoading && (path.startsWith('/books/') || path.startsWith('/reader/')))) {
+    return <div className="app-loading"><BookOpen size={22} /> Kitobxon yuklanmoqda…</div>
+  }
   const inReader = path.startsWith('/reader/')
   const standalone = inReader || path === '/sign-in' || path === '/sign-up' || (path === '/admin' && user?.role === 'admin')
   if (standalone) return <>{screen}{notice && <div className="app-notice" role="status">{notice}</div>}</>

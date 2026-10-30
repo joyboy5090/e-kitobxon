@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { ExternalLink, Sparkles } from 'lucide-react'
+import { apiRequest } from './components/common/api.js'
 import './ad-banner.css'
 
 export default function AdBanner({ placement = 'all' }) {
@@ -18,8 +19,16 @@ export default function AdBanner({ placement = 'all' }) {
           const random = res.banners[Math.floor(Math.random() * res.banners.length)]
           setCurrentBanner(random)
 
-          // Ko'rishlar sonini oshirish (background)
-          fetch(`/api/ads/${random.id}/view`, { method: 'POST' }).catch(() => {})
+          // Ko'rishlar sonini oshirish (sessiyada faqat bir marta bitta banner uchun)
+          const sessionKey = `kb_ad_viewed_${random.id}`
+          try {
+            if (!sessionStorage.getItem(sessionKey)) {
+              sessionStorage.setItem(sessionKey, '1')
+              apiRequest(`/api/ads/${random.id}/view`, { method: 'POST' }).catch(() => {})
+            }
+          } catch {
+            apiRequest(`/api/ads/${random.id}/view`, { method: 'POST' }).catch(() => {})
+          }
         }
       })
       .catch(() => {})
@@ -46,7 +55,7 @@ export default function AdBanner({ placement = 'all' }) {
 
   const handleClick = (banner) => {
     if (!banner?.id) return
-    fetch(`/api/ads/${banner.id}/click`, { method: 'POST' }).catch(() => {})
+    apiRequest(`/api/ads/${banner.id}/click`, { method: 'POST' }).catch(() => {})
   }
 
   // Agar homiylik banneri mavjud bo'lsa

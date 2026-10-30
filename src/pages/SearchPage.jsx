@@ -22,7 +22,8 @@ export function SearchPage({ books, genres, query, genre, querySort, favorites, 
     return textMatch && genreMatch
   })
 
-  if (sort === 'rating' || sort === 'popular') results = [...results].sort((a, b) => Number(b.rating) - Number(a.rating))
+  if (sort === 'rating') results = [...results].sort((a, b) => (Number(b.ratingValue) || (Number(b.rating) || 0)) - (Number(a.ratingValue) || (Number(a.rating) || 0)))
+  if (sort === 'popular') results = [...results].sort((a, b) => (Number(b.reviewsCount) || 0) - (Number(a.reviewsCount) || 0) || (Number(b.ratingValue) || 0) - (Number(a.ratingValue) || 0))
   if (sort === 'title') results = [...results].sort((a, b) => a.title.localeCompare(b.title, 'uz'))
 
   const submit = (event) => {

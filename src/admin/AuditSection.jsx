@@ -16,6 +16,14 @@ const ACTION_LABELS = {
   'adsense.update': 'AdSense sozlamalari yangilandi',
   'backup.create': 'Zaxira nusxasi yaratildi',
   'backup.delete': 'Zaxira nusxasi o‘chirildi',
+  'blog.create': 'Maqola chop etildi',
+  'blog.update': 'Maqola tahrirlandi',
+  'blog.delete': 'Maqola o‘chirildi',
+  'support.reply': 'Murojaatga javob berildi',
+  'support.status': 'Murojaat holati yangilandi',
+  'faq.create': 'Savol-javob qo‘shildi',
+  'faq.update': 'Savol-javob yangilandi',
+  'faq.delete': 'Savol-javob o‘chirildi',
 }
 
 export function AuditSection({ api }) {

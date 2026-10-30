@@ -10,6 +10,8 @@ export function BlogPage({ onNavigate }) {
   const [categories, setCategories] = useState([])
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
+  const [debouncedQuery, setDebouncedQuery] = useState('')
+  const [reloadTrigger, setReloadTrigger] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -17,13 +19,22 @@ export function BlogPage({ onNavigate }) {
     document.title = 'Adabiy Blog va Taqrizlar — e-kitobxon.uz'
   }, [])
 
+  // Qidiruv uchun 300ms debounce
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(searchQuery)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [searchQuery])
+
   useEffect(() => {
     let ignore = false
     setLoading(true)
+    setError('')
 
     const params = new URLSearchParams()
     if (selectedCategory !== 'all') params.set('category', selectedCategory)
-    if (searchQuery.trim()) params.set('q', searchQuery.trim())
+    if (debouncedQuery.trim()) params.set('q', debouncedQuery.trim())
 
     apiRequest(`/api/blog?${params.toString()}`)
       .then((data) => {
@@ -41,7 +52,7 @@ export function BlogPage({ onNavigate }) {
       })
 
     return () => { ignore = true }
-  }, [selectedCategory, searchQuery])
+  }, [selectedCategory, debouncedQuery, reloadTrigger])
 
   const featured = posts.length > 0 ? posts[0] : null
   const regularPosts = posts.length > 1 ? posts.slice(1) : []
@@ -98,7 +109,7 @@ export function BlogPage({ onNavigate }) {
       ) : error ? (
         <div className="empty-state" role="alert">
           <p>{error}</p>
-          <button type="button" className="button-primary" onClick={() => setSelectedCategory('all')}>Qayta urinish</button>
+          <button type="button" className="button-primary" onClick={() => setReloadTrigger((v) => v + 1)}>Qayta urinish</button>
         </div>
       ) : posts.length === 0 ? (
         <div className="blog-empty">

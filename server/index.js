@@ -57,8 +57,20 @@ let viteServer = null
 
 app.set('trust proxy', 1)
 app.disable('x-powered-by')
-app.use(helmet({ contentSecurityPolicy: false, frameguard: false }))
-app.use(express.json({ limit: '20kb' }))
+app.use(helmet({
+  contentSecurityPolicy: false,
+  frameguard: { action: 'sameorigin' },
+}))
+
+// Blog maqolalari (matn va rasmlar) uchun alohida 500kb limit
+const blogJsonParser = express.json({ limit: '500kb' })
+const defaultJsonParser = express.json({ limit: '20kb' })
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api/admin/blog')) {
+    return blogJsonParser(req, res, next)
+  }
+  return defaultJsonParser(req, res, next)
+})
 app.use((req, res, next) => {
   if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) {
     const pdfUpload = req.method === 'POST'
@@ -96,6 +108,26 @@ const authLimiter = rateLimit({
   standardHeaders: 'draft-8',
   legacyHeaders: false,
   message: { error: 'Urinishlar soni ko‘payib ketdi. Birozdan so‘ng yana urinib ko‘ring.' },
+})
+const meRateLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000,
+  limit: 60,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+})
+const captchaLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000,
+  limit: 30,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  message: { error: 'Juda ko‘p so‘rov yuborildi. Biroz kuting.' },
+})
+const pdfDownloadLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 120, // 15 daqiqada 120 ta PDF/sahifa yuklash
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  message: { error: 'Juda ko‘p kitob varaqladingiz. Birozdan so‘ng davom eting.' },
 })
 const adminWriteLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
@@ -197,8 +229,9 @@ async function beginUserSession(req, user) {
   return { id: user.id, username: user.username, email: user.email, role: user.role, gender: user.gender, csrfToken: req.session.csrfToken }
 }
 
-function mapDynamicBook(row, index = 0) {
+function mapDynamicBook(row, index = 0, ratingData = null) {
   const [color, accent] = coverPalettes[index % coverPalettes.length]
+  const avgRating = ratingData?.average !== undefined ? Number(ratingData.average) : (row.avg_rating !== undefined ? Number(row.avg_rating) : null)
   return {
     id: row.id,
     title: row.title,
@@ -208,7 +241,9 @@ function mapDynamicBook(row, index = 0) {
     genre: row.genre,
     group: row.genre,
     categories: [row.genre],
-    rating: '—',
+    rating: avgRating && avgRating > 0 ? avgRating.toFixed(1) : '—',
+    ratingValue: avgRating && avgRating > 0 ? avgRating : 0,
+    reviewsCount: Number(ratingData?.count ?? row.reviews_count ?? 0),
     pages: row.page_count,
     pageCount: row.page_count,
     color,
@@ -230,18 +265,50 @@ async function bookExists(bookId) {
 }
 
 function extractPageText(items) {
-  const lines = []
+  const rawLines = []
   let line = ''
   for (const item of items) {
     const text = typeof item.str === 'string' ? item.str.replace(/\s+/g, ' ').trim() : ''
     if (text) line += `${line ? ' ' : ''}${text}`
     if (item.hasEOL && line) {
-      lines.push(line)
+      rawLines.push(line)
       line = ''
     }
   }
-  if (line) lines.push(line)
-  return lines.join('\n\n').trim()
+  if (line) rawLines.push(line)
+
+  // Qatorlarni mantiqiy xatboshilarga birlashtirish
+  const paragraphs = []
+  let currentPara = ''
+
+  for (let i = 0; i < rawLines.length; i++) {
+    const l = rawLines[i].trim()
+    if (!l) {
+      if (currentPara) {
+        paragraphs.push(currentPara)
+        currentPara = ''
+      }
+      continue
+    }
+
+    if (!currentPara) {
+      currentPara = l
+    } else {
+      // Agar oldingi qator defis bilan tugagan bo'lsa (so'z ko'chirish)
+      if (currentPara.endsWith('-')) {
+        currentPara = currentPara.slice(0, -1) + l
+      } else if (/[.!?:;»"]$/.test(currentPara) && /^[A-ZА-ЯЁЎҚҒҲ0-9]/.test(l)) {
+        // Gap tugagan va yangi gap bosh harf bilan boshlansa yangi xatboshi bo'lishi mumkin
+        paragraphs.push(currentPara)
+        currentPara = l
+      } else {
+        currentPara += ' ' + l
+      }
+    }
+  }
+
+  if (currentPara) paragraphs.push(currentPara)
+  return paragraphs.join('\n\n').trim()
 }
 
 async function extractPdfPages(buffer) {
@@ -362,8 +429,13 @@ app.get('/api/health', asyncRoute(async (_req, res) => {
 
 app.get('/api/books', asyncRoute(async (_req, res) => {
   const { rows } = await pool.query(
-    `SELECT id, title, author, published_year, genre, description, language, page_count
-     FROM library_books ORDER BY created_at DESC`,
+    `SELECT b.id, b.title, b.author, b.published_year, b.genre, b.description, b.language, b.page_count,
+            COALESCE(ROUND(AVG(r.rating)::numeric, 1), 0) AS avg_rating,
+            COUNT(r.id)::int AS reviews_count
+     FROM library_books b
+     LEFT JOIN book_reviews r ON r.book_id = b.id
+     GROUP BY b.id
+     ORDER BY b.created_at DESC`,
   )
   res.json({ books: rows.map((row, index) => mapDynamicBook(row, index)) })
 }))
@@ -379,14 +451,24 @@ app.get('/api/books/:bookId', asyncRoute(async (req, res) => {
       hasPdf: false,
     } })
   }
-  const row = await getDynamicBook(req.params.bookId)
+  const { rows } = await pool.query(
+    `SELECT b.*,
+            COALESCE(ROUND(AVG(r.rating)::numeric, 1), 0) AS avg_rating,
+            COUNT(r.id)::int AS reviews_count
+     FROM library_books b
+     LEFT JOIN book_reviews r ON r.book_id = b.id
+     WHERE b.id = $1
+     GROUP BY b.id`,
+    [req.params.bookId],
+  )
+  const row = rows[0]
   if (!row) return res.status(404).json({ error: 'Kitob topilmadi.' })
   res.json({ book: mapDynamicBook(row) })
 }))
 
 // Asl PDF faylni (faqat kirgan foydalanuvchiga) beradi. sendFile Range so'rovlarini
 // qo'llab-quvvatlaydi, shuning uchun brauzer faqat kerakli betlarni yuklab oladi.
-app.get('/api/books/:bookId/file', requireUser, asyncRoute(async (req, res) => {
+app.get('/api/books/:bookId/file', requireUser, pdfDownloadLimiter, asyncRoute(async (req, res) => {
   const row = await getDynamicBook(req.params.bookId)
   if (!row) return res.status(404).json({ error: 'PDF kitob topilmadi.' })
   let filePath
@@ -541,7 +623,7 @@ app.get('/api/admin/books', requireUser, requireAdmin, asyncRoute(async (_req, r
   })) })
 }))
 
-app.get('/api/auth/me', asyncRoute(async (req, res) => {
+app.get('/api/auth/me', meRateLimiter, asyncRoute(async (req, res) => {
   let user = null
   if (req.session.userId) {
     const { rows } = await pool.query(
@@ -555,10 +637,11 @@ app.get('/api/auth/me', asyncRoute(async (req, res) => {
   res.json({ user, csrfToken: req.session.csrfToken })
 }))
 
-app.get('/api/auth/captcha', (req, res) => {
+app.get('/api/auth/captcha', captchaLimiter, (req, res) => {
   const { svg, answer, expiresAt } = generateCaptcha()
   req.session.captchaAnswer = answer
   req.session.captchaExpires = expiresAt
+  req.session.captchaGeneratedAt = Date.now()
   res.json({ svg })
 })
 
@@ -568,9 +651,11 @@ app.post('/api/auth/register', authLimiter, requireCsrf, asyncRoute(async (req, 
     return res.status(400).json({ error: 'Spam aniqlandi.' })
   }
 
-  // Time-trap (odam 1 soniyadan tez forma to'ldira olmaydi)
-  const renderedAt = Number(req.body?.renderedAt)
-  if (renderedAt && Date.now() - renderedAt < 1000) {
+  // Server-side Time-trap (odam CAPTCHA olgandan keyin 1 soniyadan tez forma to'ldira olmaydi)
+  const serverRenderedAt = Number(req.session?.captchaGeneratedAt)
+  const clientRenderedAt = Number(req.body?.renderedAt)
+  const referenceTime = serverRenderedAt || clientRenderedAt
+  if (referenceTime && Date.now() - referenceTime < 1000) {
     return res.status(400).json({ error: 'Juda tez yuborildi. Iltimos, qayta urinib ko‘ring.' })
   }
 
@@ -1025,6 +1110,16 @@ if (process.env.NODE_ENV === 'production') {
 app.use((error, _req, res, _next) => {
   console.error('Kitobxon request failed:', error.message)
   if (res.headersSent) return
+  const status = Number(error.status || error.statusCode)
+  if (status >= 400 && status < 500) {
+    if (error.type === 'entity.too.large') {
+      return res.status(status).json({ error: 'Yuborilgan ma’lumot hajmi juda katta (maksimal 20 KB).' })
+    }
+    if (error.type === 'entity.parse.failed') {
+      return res.status(status).json({ error: 'Yuborilgan JSON formati noto‘g‘ri.' })
+    }
+    return res.status(status).json({ error: error.message || 'Noto‘g‘ri so‘rov yuborildi.' })
+  }
   res.status(500).json({ error: 'Serverda xatolik yuz berdi. Birozdan so‘ng qayta urinib ko‘ring.' })
 })
 

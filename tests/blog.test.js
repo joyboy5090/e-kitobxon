@@ -1,16 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-
-function slugify(text) {
-  return String(text || '')
-    .toLowerCase()
-    .replace(/['’`ʼʻ]/g, '')
-    .replace(/[^a-z0-9\s-]/g, '')
-    .trim()
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .slice(0, 180)
-}
+import { slugify } from '../server/blogRoutes.js'
 
 test('slugify generates valid URL-friendly slugs for Uzbek text', () => {
   assert.equal(

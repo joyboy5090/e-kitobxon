@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { RotateCw, ShieldCheck } from 'lucide-react'
 import './captcha.css'
 
-export default function CaptchaField({ value, onChange, error }) {
+export default function CaptchaField({ value, onChange, error, onRefreshRef, hpValue = '', onHpChange }) {
   const [svg, setSvg] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -21,6 +21,9 @@ export default function CaptchaField({ value, onChange, error }) {
 
   useEffect(() => {
     loadCaptcha()
+    if (onRefreshRef) {
+      onRefreshRef.current = loadCaptcha
+    }
   }, [])
 
   return (
@@ -62,6 +65,8 @@ export default function CaptchaField({ value, onChange, error }) {
       <input
         type="text"
         name="hp_website"
+        value={hpValue}
+        onChange={(e) => onHpChange?.(e.target.value)}
         tabIndex={-1}
         autoComplete="off"
         style={{

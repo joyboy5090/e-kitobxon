@@ -5,26 +5,55 @@ import { apiRequest } from '../components/common/api.js'
 import { formatDate } from '../components/common/dateUtils.js'
 import '../blog.css'
 
+// Qalin (**text**) va kursiv (*text*) formatlashni xavfsiz React elementlariga o'girish
+function formatInlineText(text) {
+  if (!text) return text
+  // Qismlarga ajratamiz: **bold** va *italic*
+  const parts = []
+  // Regex matches **...** or *...*
+  const regex = /(\*\*[^*]+\*\*|\*[^*]+\*)/g
+  let lastIndex = 0
+  let match
+
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index))
+    }
+    const token = match[0]
+    if (token.startsWith('**') && token.endsWith('**')) {
+      parts.push(<strong key={`b-${match.index}`}>{token.slice(2, -2)}</strong>)
+    } else if (token.startsWith('*') && token.endsWith('*')) {
+      parts.push(<em key={`i-${match.index}`}>{token.slice(1, -1)}</em>)
+    } else {
+      parts.push(token)
+    }
+    lastIndex = regex.lastIndex
+  }
+
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex))
+  }
+
+  return parts.length ? parts : text
+}
+
 // Oddiy markdown parser (sarlavhalar, iqtiboslar, ro'yxatlar va paragraflar uchun)
 function renderMarkdownContent(content) {
   if (!content) return null
 
   const lines = content.split('\n')
   const elements = []
-  let inBlockquote = false
   let blockquoteLines = []
-  let inList = false
   let listItems = []
 
   const flushBlockquote = () => {
     if (blockquoteLines.length) {
       elements.push(
         <blockquote key={`bq-${elements.length}`}>
-          {blockquoteLines.join(' ')}
+          {formatInlineText(blockquoteLines.join(' '))}
         </blockquote>
       )
       blockquoteLines = []
-      inBlockquote = false
     }
   }
 
@@ -32,11 +61,10 @@ function renderMarkdownContent(content) {
     if (listItems.length) {
       elements.push(
         <ul key={`ul-${elements.length}`}>
-          {listItems.map((item, idx) => <li key={idx}>{item}</li>)}
+          {listItems.map((item, idx) => <li key={idx}>{formatInlineText(item)}</li>)}
         </ul>
       )
       listItems = []
-      inList = false
     }
   }
 
@@ -45,30 +73,28 @@ function renderMarkdownContent(content) {
 
     if (trimmed.startsWith('>')) {
       flushList()
-      inBlockquote = true
       blockquoteLines.push(trimmed.replace(/^>\s*/, '').replace(/^[*"]|[*"]$/g, ''))
       return
-    } else if (inBlockquote) {
+    } else if (blockquoteLines.length) {
       flushBlockquote()
     }
 
     if (trimmed.startsWith('* ') || trimmed.startsWith('- ')) {
       flushBlockquote()
-      inList = true
       listItems.push(trimmed.replace(/^[*\-]\s*/, ''))
       return
-    } else if (inList) {
+    } else if (listItems.length) {
       flushList()
     }
 
     if (trimmed.startsWith('## ')) {
-      elements.push(<h2 key={`h2-${index}`}>{trimmed.replace('## ', '')}</h2>)
+      elements.push(<h2 key={`h2-${index}`}>{formatInlineText(trimmed.replace('## ', ''))}</h2>)
     } else if (trimmed.startsWith('### ')) {
-      elements.push(<h3 key={`h3-${index}`}>{trimmed.replace('### ', '')}</h3>)
+      elements.push(<h3 key={`h3-${index}`}>{formatInlineText(trimmed.replace('### ', ''))}</h3>)
     } else if (trimmed === '') {
       // Bo'sh qator
     } else {
-      elements.push(<p key={`p-${index}`}>{trimmed}</p>)
+      elements.push(<p key={`p-${index}`}>{formatInlineText(trimmed)}</p>)
     }
   })
 
