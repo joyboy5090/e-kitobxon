@@ -87,6 +87,11 @@ function PdfBookReader({
         setPageData({ ...result, content })
         if (count) setPageCount(count)
         setLoading(false)
+
+        // Agar sahifada matn yo'q bo'lsa (skanerlangan, rasm yoki bo'sh), avtomatik Asl PDF rejimiga o'tamiz
+        if (!content.trim()) {
+          setViewMode('original')
+        }
         const readKey = `${book.id}:${pageIndex}`
         if (loadedReadRef.current !== readKey) {
           loadedReadRef.current = readKey
@@ -154,6 +159,11 @@ function PdfBookReader({
         setPageData({ ...result, content })
         if (count) setPageCount(count)
         setLoading(false)
+
+        // Agar sahifada matn yo'q bo'lsa (skanerlangan, rasm yoki bo'sh), avtomatik Asl PDF rejimiga o'tamiz
+        if (!content.trim()) {
+          setViewMode('original')
+        }
         const readKey = `${book?.id}:${pageIndex}`
         if (loadedReadRef.current !== readKey) {
           loadedReadRef.current = readKey
@@ -255,7 +265,15 @@ function PdfBookReader({
             <div className="kb-reader__message">
               <FileText size={25} />
               <h2>Bu sahifada matn yo‘q</h2>
-              <p>Keyingi sahifaga o‘ting yoki kitobning boshqa sahifasini tanlang.</p>
+              <p>Ushbu sahifa rasm, titul yoki skanerlangan nusxa bo‘lishi mumkin.</p>
+              <button
+                className="kb-button"
+                type="button"
+                onClick={() => changeViewMode('original')}
+                style={{ marginTop: 12 }}
+              >
+                <BookOpen size={15} /> Asl PDF ko‘rinishida ochish
+              </button>
             </div>
           )}
         </article>
