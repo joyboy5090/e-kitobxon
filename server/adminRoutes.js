@@ -196,6 +196,7 @@ export function registerAdminRoutes(app, deps) {
       await logAdminAction(pool, req.user, 'user.unblock', 'user', id, target.username)
     }
     if (newRole !== target.role) {
+      await pool.query(`DELETE FROM kitobxon_sessions WHERE sess->>'userId' = $1`, [id])
       await logAdminAction(pool, req.user, 'user.role', 'user', id, `${target.username}: ${target.role} → ${newRole}`)
     }
     res.json({ ok: true })

@@ -199,22 +199,26 @@ async function hashPassword(password) {
 }
 
 async function verifyPassword(password, storedHash) {
-  const [algorithm, n, r, p, saltEncoded, keyEncoded] = String(storedHash || '').split('$')
-  if (algorithm !== 'scrypt' || !saltEncoded || !keyEncoded) return false
-  const numN = Number(n)
-  const numR = Number(r)
-  const numP = Number(p)
-  if (numN !== SCRYPT_N || numR !== SCRYPT_R || numP !== SCRYPT_P) return false
-  const salt = Buffer.from(saltEncoded, 'base64url')
-  const expected = Buffer.from(keyEncoded, 'base64url')
-  if (salt.length !== 16 || expected.length !== SCRYPT_KEY_LENGTH) return false
-  const derived = Buffer.from(await scrypt(password, salt, expected.length, {
-    N: numN,
-    r: numR,
-    p: numP,
-    maxmem: 32 * 1024 * 1024,
-  }))
-  return timingSafeEqual(expected, derived)
+  try {
+    const [algorithm, n, r, p, saltEncoded, keyEncoded] = String(storedHash || '').split('$')
+    if (algorithm !== 'scrypt' || !saltEncoded || !keyEncoded) return false
+    const numN = Number(n)
+    const numR = Number(r)
+    const numP = Number(p)
+    if (numN !== SCRYPT_N || numR !== SCRYPT_R || numP !== SCRYPT_P) return false
+    const salt = Buffer.from(saltEncoded, 'base64url')
+    const expected = Buffer.from(keyEncoded, 'base64url')
+    if (salt.length !== 16 || expected.length !== SCRYPT_KEY_LENGTH) return false
+    const derived = Buffer.from(await scrypt(password, salt, expected.length, {
+      N: numN,
+      r: numR,
+      p: numP,
+      maxmem: 32 * 1024 * 1024,
+    }))
+    return timingSafeEqual(expected, derived)
+  } catch {
+    return false
+  }
 }
 
 function newCsrfToken() {
@@ -514,7 +518,7 @@ app.get('/api/books/:bookId/file', requireUser, pdfDownloadLimiter, asyncRoute(a
     'Cache-Control': 'private, max-age=3600',
     'X-Content-Type-Options': 'nosniff',
   })
-  res.sendFile(filePath, { dotfiles: 'allow' }, (error) => {
+  res.sendFile(filePath, { dotfiles: 'deny' }, (error) => {
     if (error && !res.headersSent) {
       res.status(error.code === 'ENOENT' ? 404 : 500).json({ error: 'PDF fayli topilmadi.' })
     }

@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS kitobxon_sessions (
 );
 
 CREATE INDEX IF NOT EXISTS kitobxon_sessions_expire_idx ON kitobxon_sessions (expire);
+CREATE INDEX IF NOT EXISTS kitobxon_sessions_user_id_idx ON kitobxon_sessions ((sess->>'userId'));
 
 CREATE TABLE IF NOT EXISTS library_books (
   id varchar(100) PRIMARY KEY,

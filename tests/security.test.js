@@ -6,6 +6,7 @@ import { safeNextPath } from '../src/components/common/urlUtils.js'
 import { isSafeHttpUrl, UUID_REGEX, ADSENSE_ID_REGEX, adMetricLimiter } from '../server/adRoutes.js'
 import { encryptBackupBuffer, decryptBackupBuffer } from '../server/backup.js'
 import { isSafeBlogCoverUrl, UUID_PATTERN } from '../server/blogRoutes.js'
+import { verifyCaptcha } from '../server/captcha.js'
 
 const scrypt = promisify(scryptCallback)
 const SCRYPT_N = 16384
@@ -20,22 +21,26 @@ async function hashPassword(password) {
 }
 
 async function verifyPassword(password, storedHash) {
-  const [algorithm, n, r, p, saltEncoded, keyEncoded] = String(storedHash || '').split('$')
-  if (algorithm !== 'scrypt' || !saltEncoded || !keyEncoded) return false
-  const numN = Number(n)
-  const numR = Number(r)
-  const numP = Number(p)
-  if (numN !== SCRYPT_N || numR !== SCRYPT_R || numP !== SCRYPT_P) return false
-  const salt = Buffer.from(saltEncoded, 'base64url')
-  const expected = Buffer.from(keyEncoded, 'base64url')
-  if (salt.length !== 16 || expected.length !== SCRYPT_KEY_LENGTH) return false
-  const derived = Buffer.from(await scrypt(password, salt, expected.length, {
-    N: numN,
-    r: numR,
-    p: numP,
-    maxmem: 32 * 1024 * 1024,
-  }))
-  return timingSafeEqual(derived, expected)
+  try {
+    const [algorithm, n, r, p, saltEncoded, keyEncoded] = String(storedHash || '').split('$')
+    if (algorithm !== 'scrypt' || !saltEncoded || !keyEncoded) return false
+    const numN = Number(n)
+    const numR = Number(r)
+    const numP = Number(p)
+    if (numN !== SCRYPT_N || numR !== SCRYPT_R || numP !== SCRYPT_P) return false
+    const salt = Buffer.from(saltEncoded, 'base64url')
+    const expected = Buffer.from(keyEncoded, 'base64url')
+    if (salt.length !== 16 || expected.length !== SCRYPT_KEY_LENGTH) return false
+    const derived = Buffer.from(await scrypt(password, salt, expected.length, {
+      N: numN,
+      r: numR,
+      p: numP,
+      maxmem: 32 * 1024 * 1024,
+    }))
+    return timingSafeEqual(derived, expected)
+  } catch {
+    return false
+  }
 }
 
 test('scrypt password hash and verification works accurately', async () => {
@@ -57,10 +62,13 @@ test('safeNextPath sanitizes redirect targets against Open-Redirect attacks', ()
 })
 
 test('isSafeHttpUrl strictly allows only http: and https: protocols', () => {
+  assert.equal(isSafeHttpUrl('https://example.com'), true)
   assert.equal(isSafeHttpUrl('https://e-kitobxon.uz'), true)
   assert.equal(isSafeHttpUrl('http://example.com/banner.png'), true)
+  assert.equal(isSafeHttpUrl('javascript:alert(1)'), false)
   assert.equal(isSafeHttpUrl('javascript:alert(document.cookie)'), false)
   assert.equal(isSafeHttpUrl('data:text/html,<script>alert(1)</script>'), false)
+  assert.equal(isSafeHttpUrl('data:text/html,...'), false)
   assert.equal(isSafeHttpUrl('/relative/path'), false)
   assert.equal(isSafeHttpUrl(''), false)
   assert.equal(isSafeHttpUrl(null), false)
@@ -116,6 +124,41 @@ test('verifyPassword rejects manipulated scrypt parameters (DoS prevention)', as
   // Noto'g'ri salt uzunligi
   const shortSalt = `scrypt$16384$8$1$c2hvcnQ$${Buffer.alloc(64).toString('base64url')}`
   assert.equal(await verifyPassword(rawPass, shortSalt), false, 'Noto‘g‘ri salt uzunligi rad etilishi kerak')
+
+  // Buzilgan yoki haddan tashqari katta / NaN parametrlar xavfsiz false qaytarishi kerak
+  const hugeN = `scrypt$99999999$8$1$${Buffer.alloc(16).toString('base64url')}$${Buffer.alloc(64).toString('base64url')}`
+  assert.equal(await verifyPassword(rawPass, hugeN), false, 'scrypt$99999999... xatoliksiz false qaytarishi kerak')
+
+  const nanN = `scrypt$NaN$8$1$${Buffer.alloc(16).toString('base64url')}$${Buffer.alloc(64).toString('base64url')}`
+  assert.equal(await verifyPassword(rawPass, nanN), false, 'scrypt$NaN... xatoliksiz false qaytarishi kerak')
+
+  assert.equal(await verifyPassword(rawPass, 'invalid$hash$format'), false, 'Buzilgan xeshlar false qaytarishi kerak')
+})
+
+test('verifyCaptcha clears captchaAnswer, captchaExpires, and captchaGeneratedAt on both success and failure', () => {
+  const reqSuccess = {
+    session: {
+      captchaAnswer: '42',
+      captchaExpires: Date.now() + 60000,
+      captchaGeneratedAt: Date.now() - 2000,
+    },
+  }
+  assert.equal(verifyCaptcha(reqSuccess, '42'), true, 'To‘g‘ri javob qabul qilinishi kerak')
+  assert.equal(reqSuccess.session.captchaAnswer, undefined, 'captchaAnswer o‘chirilishi kerak')
+  assert.equal(reqSuccess.session.captchaExpires, undefined, 'captchaExpires o‘chirilishi kerak')
+  assert.equal(reqSuccess.session.captchaGeneratedAt, undefined, 'captchaGeneratedAt o‘chirilishi kerak')
+
+  const reqFail = {
+    session: {
+      captchaAnswer: '42',
+      captchaExpires: Date.now() + 60000,
+      captchaGeneratedAt: Date.now() - 2000,
+    },
+  }
+  assert.equal(verifyCaptcha(reqFail, '99'), false, 'Noto‘g‘ri javob rad etilishi kerak')
+  assert.equal(reqFail.session.captchaAnswer, undefined, 'Xato javobda ham captchaAnswer o‘chirilishi kerak')
+  assert.equal(reqFail.session.captchaExpires, undefined, 'Xato javobda ham captchaExpires o‘chirilishi kerak')
+  assert.equal(reqFail.session.captchaGeneratedAt, undefined, 'Xato javobda ham captchaGeneratedAt o‘chirilishi kerak')
 })
 
 test('isSafeBlogCoverUrl allows valid image paths and rejects unsafe schemes', () => {

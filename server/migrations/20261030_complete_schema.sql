@@ -64,3 +64,6 @@ CREATE TABLE IF NOT EXISTS blog_posts (
 
 CREATE INDEX IF NOT EXISTS idx_blog_posts_slug ON blog_posts(slug);
 CREATE INDEX IF NOT EXISTS idx_blog_posts_published ON blog_posts(is_published, created_at DESC);
+
+-- 5. Sessiyalarni tezkor qidirish va tozalash indeksi
+CREATE INDEX IF NOT EXISTS kitobxon_sessions_user_id_idx ON kitobxon_sessions ((sess->>'userId'));
