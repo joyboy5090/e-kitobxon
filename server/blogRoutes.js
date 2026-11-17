@@ -2,6 +2,22 @@
 
 import { randomUUID } from 'node:crypto'
 
+export const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
+export function isSafeBlogCoverUrl(url) {
+  if (!url || typeof url !== 'string') return true
+  const trimmed = url.trim()
+  if (!trimmed) return true
+  if (trimmed.length > 1000) return false
+  if (trimmed.startsWith('/')) return true
+  try {
+    const parsed = new URL(trimmed)
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:'
+  } catch {
+    return false
+  }
+}
+
 export function slugify(text) {
   return String(text || '')
     .toLowerCase()
@@ -187,8 +203,9 @@ export function registerBlogRoutes(app, deps) {
     const page = Math.max(1, parseInt(req.query.page, 10) || 1)
     const limit = Math.min(20, Math.max(1, parseInt(req.query.limit, 10) || 9))
     const offset = (page - 1) * limit
-    const category = (req.query.category || '').trim()
-    const search = (req.query.q || '').trim()
+    const category = typeof req.query.category === 'string' ? req.query.category.trim() : ''
+    const search = typeof req.query.q === 'string' ? req.query.q.trim().slice(0, 80) : ''
+    const escapedSearch = search.replace(/[\\%_]/g, '\\$&')
 
     const params = []
     let whereClauses = ['is_published = true']
@@ -198,8 +215,8 @@ export function registerBlogRoutes(app, deps) {
       whereClauses.push(`category = $${params.length}`)
     }
 
-    if (search) {
-      params.push(`%${search}%`)
+    if (escapedSearch) {
+      params.push(`%${escapedSearch}%`)
       whereClauses.push(`(title ILIKE $${params.length} OR excerpt ILIKE $${params.length} OR content ILIKE $${params.length})`)
     }
 
@@ -310,6 +327,9 @@ export function registerBlogRoutes(app, deps) {
     if (!content || !content.trim()) {
       return res.status(400).json({ error: 'Maqola matni kiritilishi shart' })
     }
+    if (cover_image && !isSafeBlogCoverUrl(cover_image)) {
+      return res.status(400).json({ error: 'Rasm havolasi noto‘g‘ri (faqat http://, https:// yoki / bilan boshlanuvchi havola qabul qilinadi).' })
+    }
 
     let finalSlug = slugify(customSlug || title)
     if (!finalSlug) finalSlug = `maqola-${Date.now()}`
@@ -347,6 +367,9 @@ export function registerBlogRoutes(app, deps) {
   // Maqolani tahrirlash
   app.put('/api/admin/blog/:id', ...guard, requireCsrf, asyncRoute(async (req, res) => {
     const { id } = req.params
+    if (!UUID_PATTERN.test(id)) {
+      return res.status(404).json({ error: 'Maqola topilmadi' })
+    }
     const {
       title,
       slug: customSlug,
@@ -364,6 +387,9 @@ export function registerBlogRoutes(app, deps) {
     }
     if (!content || !content.trim()) {
       return res.status(400).json({ error: 'Maqola matni kiritilishi shart' })
+    }
+    if (cover_image && !isSafeBlogCoverUrl(cover_image)) {
+      return res.status(400).json({ error: 'Rasm havolasi noto‘g‘ri (faqat http://, https:// yoki / bilan boshlanuvchi havola qabul qilinadi).' })
     }
 
     let finalSlug = slugify(customSlug || title)
@@ -414,6 +440,9 @@ export function registerBlogRoutes(app, deps) {
   // Maqolani o'chirish
   app.delete('/api/admin/blog/:id', ...guard, requireCsrf, asyncRoute(async (req, res) => {
     const { id } = req.params
+    if (!UUID_PATTERN.test(id)) {
+      return res.status(404).json({ error: 'Maqola topilmadi' })
+    }
 
     const { rows } = await pool.query('DELETE FROM blog_posts WHERE id = $1 RETURNING title, slug', [id])
     if (!rows.length) {

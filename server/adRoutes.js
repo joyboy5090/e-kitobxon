@@ -1,10 +1,19 @@
 // Kitobxon — Reklama va Monetizatsiya boshqaruvi (Google AdSense + Ichki Bannerlar)
 
 import { randomUUID } from 'node:crypto'
+import rateLimit from 'express-rate-limit'
 
 export const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 export const VALID_PLACEMENTS = ['all', 'home_top', 'reader_side', 'book_detail']
 export const ADSENSE_ID_REGEX = /^(ca-)?pub-\d{16}$/
+
+export const adMetricLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  limit: 30,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  message: { error: 'Juda ko‘p reklama so‘rovi yuborildi.' },
+})
 
 export function isSafeHttpUrl(url, maxLen = 1000) {
   if (!url || typeof url !== 'string' || url.length > maxLen) return false
@@ -111,7 +120,7 @@ export function registerAdRoutes(app, deps) {
   }))
 
   // Ko'rishlar sonini oshirish
-  app.post('/api/ads/:id/view', asyncRoute(async (req, res) => {
+  app.post('/api/ads/:id/view', adMetricLimiter, asyncRoute(async (req, res) => {
     const { id } = req.params
     if (!UUID_REGEX.test(id)) {
       return res.status(404).json({ error: 'Banner topilmadi' })
@@ -127,7 +136,7 @@ export function registerAdRoutes(app, deps) {
   }))
 
   // Bosishlar sonini oshirish
-  app.post('/api/ads/:id/click', asyncRoute(async (req, res) => {
+  app.post('/api/ads/:id/click', adMetricLimiter, asyncRoute(async (req, res) => {
     const { id } = req.params
     if (!UUID_REGEX.test(id)) {
       return res.status(404).json({ error: 'Banner topilmadi' })

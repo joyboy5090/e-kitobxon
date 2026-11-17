@@ -8,6 +8,11 @@ test('generateCaptcha creates valid SVG and numeric answer', () => {
   assert.ok(svg.includes('</svg>'), 'SVG tag bilan tugashi kerak')
   assert.ok(Number.isInteger(Number(answer)), 'Javob butun son bo‘lishi kerak')
   assert.ok(expiresAt > Date.now(), 'Amal qilish muddati kelajakda bo‘lishi kerak')
+
+  // Har bir belgi alohida <text> elementida va transform atributiga ega bo'lishi kerak
+  const textElementMatches = svg.match(/<text\b[^>]*>.*?<\/text>/g) || []
+  assert.ok(textElementMatches.length >= 5, 'Belgilar alohida SVG text elementlariga ajratilgan bo‘lishi kerak')
+  assert.ok(svg.includes('transform="rotate('), 'Belgilar tasodifiy burilish burchaklariga ega bo‘lishi kerak')
 })
 
 test('verifyCaptcha validates correct answer and rejects wrong answer', () => {
@@ -15,10 +20,12 @@ test('verifyCaptcha validates correct answer and rejects wrong answer', () => {
     session: {
       captchaAnswer: '42',
       captchaExpires: Date.now() + 60000,
+      captchaGeneratedAt: Date.now() - 2000,
     },
   }
   assert.equal(verifyCaptcha(reqSuccess, '42'), true, 'To‘g‘ri javob qabul qilinishi kerak')
   assert.equal(reqSuccess.session.captchaAnswer, undefined, 'Ishlatilgan javob darhol o‘chirilishi kerak (bir martalik)')
+  assert.equal(reqSuccess.session.captchaGeneratedAt, undefined, 'captchaGeneratedAt sessiyadan o‘chirilishi kerak')
 
   const reqFail = {
     session: {

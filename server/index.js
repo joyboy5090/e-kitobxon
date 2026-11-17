@@ -57,8 +57,23 @@ let viteServer = null
 
 app.set('trust proxy', 1)
 app.disable('x-powered-by')
+
+const isProd = process.env.NODE_ENV === 'production'
 app.use(helmet({
-  contentSecurityPolicy: false,
+  contentSecurityPolicy: isProd ? {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://www.googletagmanager.com", "https://pagead2.googlesyndication.com", "https://partner.googleadservices.com", "https://tpc.googlesyndication.com"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      imgSrc: ["'self'", "data:", "blob:", "https:"],
+      fontSrc: ["'self'", "data:", "https://fonts.gstatic.com"],
+      connectSrc: ["'self'", "https://www.google-analytics.com", "https://pagead2.googlesyndication.com", "https://ep1.adtrafficquality.google"],
+      frameSrc: ["'self'", "https://googleads.g.doubleclick.net", "https://tpc.googlesyndication.com", "https://www.google.com"],
+      workerSrc: ["'self'", "blob:"],
+      objectSrc: ["'none'"],
+      baseUri: ["'self'"],
+    },
+  } : false,
   frameguard: { action: 'sameorigin' },
 }))
 
@@ -136,6 +151,19 @@ const adminWriteLimiter = rateLimit({
   legacyHeaders: false,
   message: { error: 'Kitob yuklash uchun soatlik limitga yetdingiz.' },
 })
+const reviewLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  message: { error: 'Juda ko‘p sharh yuborildi. Birozdan so‘ng yana urinib ko‘ring.' },
+})
+const readEventLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000,
+  limit: 60,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+})
 const pdfUpload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 50 * 1024 * 1024, files: 1 },
@@ -173,13 +201,17 @@ async function hashPassword(password) {
 async function verifyPassword(password, storedHash) {
   const [algorithm, n, r, p, saltEncoded, keyEncoded] = String(storedHash || '').split('$')
   if (algorithm !== 'scrypt' || !saltEncoded || !keyEncoded) return false
+  const numN = Number(n)
+  const numR = Number(r)
+  const numP = Number(p)
+  if (numN !== SCRYPT_N || numR !== SCRYPT_R || numP !== SCRYPT_P) return false
   const salt = Buffer.from(saltEncoded, 'base64url')
   const expected = Buffer.from(keyEncoded, 'base64url')
-  if (expected.length !== SCRYPT_KEY_LENGTH) return false
+  if (salt.length !== 16 || expected.length !== SCRYPT_KEY_LENGTH) return false
   const derived = Buffer.from(await scrypt(password, salt, expected.length, {
-    N: Number(n),
-    r: Number(r),
-    p: Number(p),
+    N: numN,
+    r: numR,
+    p: numP,
     maxmem: 32 * 1024 * 1024,
   }))
   return timingSafeEqual(expected, derived)
@@ -504,7 +536,7 @@ app.get('/api/books/:bookId/pages/:pageNumber', requireUser, asyncRoute(async (r
   res.json({ bookId: row.id, pageNumber, pageCount: row.page_count, content: page.rows[0].content_text })
 }))
 
-app.post('/api/books/:bookId/read-events', requireCsrf, requireUser, asyncRoute(async (req, res) => {
+app.post('/api/books/:bookId/read-events', readEventLimiter, requireCsrf, requireUser, asyncRoute(async (req, res) => {
   const dynamic = await getDynamicBook(req.params.bookId)
   const staticBook = staticBookById.get(req.params.bookId)
   if (!dynamic && !staticBook) return res.status(404).json({ error: 'Kitob topilmadi.' })
@@ -637,13 +669,14 @@ app.get('/api/auth/me', meRateLimiter, asyncRoute(async (req, res) => {
   res.json({ user, csrfToken: req.session.csrfToken })
 }))
 
-app.get('/api/auth/captcha', captchaLimiter, (req, res) => {
+app.get('/api/auth/captcha', captchaLimiter, asyncRoute(async (req, res) => {
   const { svg, answer, expiresAt } = generateCaptcha()
   req.session.captchaAnswer = answer
   req.session.captchaExpires = expiresAt
   req.session.captchaGeneratedAt = Date.now()
+  await saveSession(req)
   res.json({ svg })
-})
+}))
 
 app.post('/api/auth/register', authLimiter, requireCsrf, asyncRoute(async (req, res) => {
   // Honeypot spam tekshiruvi (botlar avtomatik to'ldirib yuboradigan yashirin maydon)
@@ -780,7 +813,7 @@ app.get('/api/books/:bookId/reviews', asyncRoute(async (req, res) => {
   })
 }))
 
-app.post('/api/books/:bookId/reviews', requireCsrf, requireUser, asyncRoute(async (req, res) => {
+app.post('/api/books/:bookId/reviews', reviewLimiter, requireCsrf, requireUser, asyncRoute(async (req, res) => {
   if (req.body?.hp_website) return res.status(400).json({ error: 'Spam aniqlandi.' })
   if (!await bookExists(req.params.bookId)) return res.status(404).json({ error: 'Kitob topilmadi.' })
   const rating = Number(req.body?.rating)
@@ -797,26 +830,35 @@ app.post('/api/books/:bookId/reviews', requireCsrf, requireUser, asyncRoute(asyn
      VALUES ($1, $2, $3, $4, $5)
      ON CONFLICT (user_id, book_id)
      DO UPDATE SET rating = EXCLUDED.rating, comment = EXCLUDED.comment, updated_at = now()
-     RETURNING rating, comment, created_at, updated_at`,
+     RETURNING rating, comment, created_at, updated_at, (xmax = 0) AS is_new`,
     [randomUUID(), req.user.id, req.params.bookId, rating, comment],
   )
 
-  // Telegramga xabar yuborish (fon rejimida)
-  ;(async () => {
-    try {
-      const book = staticBookById.get(req.params.bookId) || await getDynamicBook(req.params.bookId)
-      notifyNewReview({
-        bookTitle: book?.title || 'Kitob',
-        username: req.user.username,
-        rating,
-        comment,
-      })
-    } catch {}
-  })()
+  // Telegramga xabar yuborish (flood himoyasi: faqat yangi sharh yoki 5 daqiqalik tanaffusdan keyin)
+  const isNew = Boolean(rows[0]?.is_new)
+  const now = Date.now()
+  const lastNotifiedAt = Number(req.session?.lastReviewNotifiedAt || 0)
+  if (isNew || (now - lastNotifiedAt > 5 * 60 * 1000)) {
+    if (req.session) {
+      req.session.lastReviewNotifiedAt = now
+    }
+    ;(async () => {
+      try {
+        const book = staticBookById.get(req.params.bookId) || await getDynamicBook(req.params.bookId)
+        notifyNewReview({
+          bookTitle: book?.title || 'Kitob',
+          username: req.user.username,
+          rating,
+          comment,
+        })
+      } catch {}
+    })()
+  }
 
   res.status(201).json({
     review: {
-      ...rows[0],
+      rating: rows[0].rating,
+      comment: rows[0].comment,
       username: req.user.username,
       createdAt: rows[0].created_at,
       updatedAt: rows[0].updated_at,
