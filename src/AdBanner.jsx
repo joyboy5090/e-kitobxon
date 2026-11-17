@@ -3,6 +3,16 @@ import { ExternalLink, Sparkles } from 'lucide-react'
 import { apiRequest } from './components/common/api.js'
 import './ad-banner.css'
 
+function isSafeHttpUrl(url) {
+  if (!url || typeof url !== 'string') return false
+  try {
+    const parsed = new URL(url, window.location.origin)
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:'
+  } catch {
+    return false
+  }
+}
+
 export default function AdBanner({ placement = 'all' }) {
   const [data, setData] = useState(null)
   const [currentBanner, setCurrentBanner] = useState(null)
@@ -63,7 +73,7 @@ export default function AdBanner({ placement = 'all' }) {
     return (
       <aside className="kb-ad-container" aria-label="Homiylik reklamasi">
         <a
-          href={currentBanner.linkUrl}
+          href={isSafeHttpUrl(currentBanner.linkUrl) ? currentBanner.linkUrl : '#'}
           target="_blank"
           rel="noopener noreferrer sponsored"
           className="kb-ad-banner"
@@ -75,7 +85,7 @@ export default function AdBanner({ placement = 'all' }) {
           </div>
 
           <div className="kb-ad-content">
-            {currentBanner.imageUrl ? (
+            {currentBanner.imageUrl && isSafeHttpUrl(currentBanner.imageUrl) ? (
               <img
                 src={currentBanner.imageUrl}
                 alt={currentBanner.title}

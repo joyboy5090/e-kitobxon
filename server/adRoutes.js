@@ -2,6 +2,20 @@
 
 import { randomUUID } from 'node:crypto'
 
+export const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+export const VALID_PLACEMENTS = ['all', 'home_top', 'reader_side', 'book_detail']
+export const ADSENSE_ID_REGEX = /^(ca-)?pub-\d{16}$/
+
+export function isSafeHttpUrl(url, maxLen = 1000) {
+  if (!url || typeof url !== 'string' || url.length > maxLen) return false
+  try {
+    const parsed = new URL(url)
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:'
+  } catch {
+    return false
+  }
+}
+
 export async function initAdTables(pool) {
   try {
     await pool.query(`
@@ -99,8 +113,7 @@ export function registerAdRoutes(app, deps) {
   // Ko'rishlar sonini oshirish
   app.post('/api/ads/:id/view', asyncRoute(async (req, res) => {
     const { id } = req.params
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-    if (!uuidRegex.test(id)) {
+    if (!UUID_REGEX.test(id)) {
       return res.status(404).json({ error: 'Banner topilmadi' })
     }
     const result = await pool.query(
@@ -116,8 +129,7 @@ export function registerAdRoutes(app, deps) {
   // Bosishlar sonini oshirish
   app.post('/api/ads/:id/click', asyncRoute(async (req, res) => {
     const { id } = req.params
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-    if (!uuidRegex.test(id)) {
+    if (!UUID_REGEX.test(id)) {
       return res.status(404).json({ error: 'Banner topilmadi' })
     }
     const result = await pool.query(
@@ -171,19 +183,20 @@ export function registerAdRoutes(app, deps) {
     const title = typeof req.body?.title === 'string' ? req.body.title.trim() : ''
     const imageUrl = typeof req.body?.imageUrl === 'string' ? req.body.imageUrl.trim() : ''
     const linkUrl = typeof req.body?.linkUrl === 'string' ? req.body.linkUrl.trim() : ''
-    const placement = ['all', 'home_top', 'reader_side', 'book_detail'].includes(req.body?.placement)
-      ? req.body.placement
-      : 'all'
+    const placement = typeof req.body?.placement === 'string' ? req.body.placement.trim() : 'all'
     const isActive = req.body?.isActive !== false
 
     if (!title || title.length > 200) {
       return res.status(400).json({ error: 'Reklama sarlavhasi 1–200 belgi bo‘lishi kerak.' })
     }
-    if (!linkUrl) {
-      return res.status(400).json({ error: 'Yo‘naltirish havolasini (link) kiriting.' })
+    if (!linkUrl || !isSafeHttpUrl(linkUrl)) {
+      return res.status(400).json({ error: 'Yo‘naltirish havolasi (link) http:// yoki https:// bilan boshlanishi kerak.' })
     }
-    if (!/^https?:\/\//i.test(linkUrl)) {
-      return res.status(400).json({ error: 'Havola faqat http:// yoki https:// bilan boshlanishi kerak.' })
+    if (imageUrl && !isSafeHttpUrl(imageUrl)) {
+      return res.status(400).json({ error: 'Rasm havolasi (imageUrl) http:// yoki https:// bilan boshlanishi kerak.' })
+    }
+    if (!VALID_PLACEMENTS.includes(placement)) {
+      return res.status(400).json({ error: 'Noto‘g‘ri reklama joylashuvi tanlandi.' })
     }
 
     const id = randomUUID()
@@ -203,6 +216,8 @@ export function registerAdRoutes(app, deps) {
   // Bannerni tahrirlash yoki holatini o'zgartirish
   app.patch('/api/admin/ads/:id', ...guard, requireCsrf, asyncRoute(async (req, res) => {
     const { id } = req.params
+    if (!UUID_REGEX.test(id)) return res.status(404).json({ error: 'Reklama topilmadi.' })
+
     const { rows } = await pool.query('SELECT * FROM ad_banners WHERE id = $1', [id])
     if (!rows[0]) return res.status(404).json({ error: 'Reklama topilmadi.' })
 
@@ -210,8 +225,21 @@ export function registerAdRoutes(app, deps) {
     const title = typeof req.body?.title === 'string' ? req.body.title.trim() : banner.title
     const imageUrl = typeof req.body?.imageUrl === 'string' ? req.body.imageUrl.trim() : banner.image_url
     const linkUrl = typeof req.body?.linkUrl === 'string' ? req.body.linkUrl.trim() : banner.link_url
-    const placement = typeof req.body?.placement === 'string' ? req.body.placement : banner.placement
+    const placement = typeof req.body?.placement === 'string' ? req.body.placement.trim() : banner.placement
     const isActive = typeof req.body?.isActive === 'boolean' ? req.body.isActive : banner.is_active
+
+    if (!title || title.length > 200) {
+      return res.status(400).json({ error: 'Reklama sarlavhasi 1–200 belgi bo‘lishi kerak.' })
+    }
+    if (!linkUrl || !isSafeHttpUrl(linkUrl)) {
+      return res.status(400).json({ error: 'Yo‘naltirish havolasi (link) http:// yoki https:// bilan boshlanishi kerak.' })
+    }
+    if (imageUrl && !isSafeHttpUrl(imageUrl)) {
+      return res.status(400).json({ error: 'Rasm havolasi (imageUrl) http:// yoki https:// bilan boshlanishi kerak.' })
+    }
+    if (!VALID_PLACEMENTS.includes(placement)) {
+      return res.status(400).json({ error: 'Noto‘g‘ri reklama joylashuvi tanlandi.' })
+    }
 
     await pool.query(
       `UPDATE ad_banners
@@ -228,6 +256,8 @@ export function registerAdRoutes(app, deps) {
   // Bannerni o'chirish
   app.delete('/api/admin/ads/:id', ...guard, requireCsrf, asyncRoute(async (req, res) => {
     const { id } = req.params
+    if (!UUID_REGEX.test(id)) return res.status(404).json({ error: 'Reklama topilmadi.' })
+
     const { rows } = await pool.query('DELETE FROM ad_banners WHERE id = $1 RETURNING title', [id])
     if (!rows[0]) return res.status(404).json({ error: 'Reklama topilmadi.' })
 
@@ -239,6 +269,10 @@ export function registerAdRoutes(app, deps) {
   app.post('/api/admin/ads/adsense-config', ...guard, requireCsrf, asyncRoute(async (req, res) => {
     const clientId = typeof req.body?.clientId === 'string' ? req.body.clientId.trim() : ''
     const enabled = req.body?.enabled ? 'true' : 'false'
+
+    if (clientId && !ADSENSE_ID_REGEX.test(clientId)) {
+      return res.status(400).json({ error: 'AdSense Client ID noto‘g‘ri formatda (masalan: ca-pub-1234567890123456 yoki pub-1234567890123456).' })
+    }
 
     await pool.query(
       `INSERT INTO site_settings (key, value, updated_at)

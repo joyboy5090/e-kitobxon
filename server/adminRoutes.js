@@ -1,9 +1,20 @@
+import { rateLimit } from 'express-rate-limit'
 import {
   createDatabaseBackup,
   listBackups,
   getSafeBackupPath,
   deleteBackupFile,
 } from './backup.js'
+
+export const backupWriteLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 3,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Juda ko‘p zaxira nusxa so‘rovi yuborildi. Iltimos, 15 daqiqadan so‘ng qayta urinib ko‘ring.' },
+})
+
+let isBackupRunning = false
 
 // Admin panel uchun qo'shimcha API yo'llari.
 // Barcha yo'llar faqat kirgan ADMIN uchun ishlaydi (requireUser + requireAdmin).
@@ -297,10 +308,18 @@ export function registerAdminRoutes(app, deps) {
     res.json({ backups })
   }))
 
-  app.post('/api/admin/backups', ...guard, requireCsrf, asyncRoute(async (req, res) => {
-    const backup = await createDatabaseBackup(pool, req.user.username)
-    await logAdminAction(pool, req.user, 'backup.create', 'system', backup.filename, `Hajmi: ${backup.sizeFormatted}`)
-    res.status(201).json({ backup })
+  app.post('/api/admin/backups', ...guard, backupWriteLimiter, requireCsrf, asyncRoute(async (req, res) => {
+    if (isBackupRunning) {
+      return res.status(409).json({ error: 'Zaxira nusxa yaratish jarayoni allaqachon davom etmoqda. Iltimos, biroz kuting.' })
+    }
+    isBackupRunning = true
+    try {
+      const backup = await createDatabaseBackup(pool, req.user.username)
+      await logAdminAction(pool, req.user, 'backup.create', 'system', backup.filename, `Hajmi: ${backup.sizeFormatted}`)
+      res.status(201).json({ backup })
+    } finally {
+      isBackupRunning = false
+    }
   }))
 
   app.get('/api/admin/backups/:filename/download', ...guard, asyncRoute(async (req, res) => {

@@ -1003,8 +1003,10 @@ app.get('/ads.txt', async (_req, res) => {
     const clientId = rows[0]?.value?.trim()
     if (clientId) {
       const pubId = clientId.replace(/^ca-/, '')
-      res.type('text/plain').send(`google.com, ${pubId}, DIRECT, f08c47fec0942fa0\n`)
-      return
+      if (/^pub-\d{16}$/.test(pubId)) {
+        res.type('text/plain').send(`google.com, ${pubId}, DIRECT, f08c47fec0942fa0\n`)
+        return
+      }
     }
   } catch {}
   res.sendFile(path.join(projectRoot, 'public', 'ads.txt'))

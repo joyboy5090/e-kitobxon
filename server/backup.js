@@ -7,6 +7,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import zlib from 'node:zlib'
 import { promisify } from 'node:util'
+import crypto from 'node:crypto'
 
 const gzip = promisify(zlib.gzip)
 const projectRoot = fileURLToPath(new URL('..', import.meta.url))
@@ -34,6 +35,49 @@ export async function ensureBackupDir() {
   await fs.mkdir(BACKUP_DIR, { recursive: true })
 }
 
+export function getBackupEncryptionKey() {
+  const raw = process.env.BACKUP_ENCRYPTION_KEY
+  if (!raw || typeof raw !== 'string') return null
+  const trimmed = raw.trim()
+  if (!trimmed) return null
+
+  // 64 ta hex belgi bo'lsa (32 bayt)
+  if (/^[0-9a-f]{64}$/i.test(trimmed)) {
+    return Buffer.from(trimmed, 'hex')
+  }
+  // Base64 32 bayt (44 belgi)
+  if (/^[A-Za-z0-9+/]{43}=$/.test(trimmed) || /^[A-Za-z0-9+/]{44}$/.test(trimmed)) {
+    const buf = Buffer.from(trimmed, 'base64')
+    if (buf.length === 32) return buf
+  }
+  const utf8Buf = Buffer.from(trimmed, 'utf-8')
+  if (utf8Buf.length >= 32) {
+    return utf8Buf.subarray(0, 32)
+  }
+  return crypto.createHash('sha256').update(utf8Buf).digest()
+}
+
+export function encryptBackupBuffer(buffer, key) {
+  const iv = crypto.randomBytes(12)
+  const cipher = crypto.createCipheriv('aes-256-gcm', key, iv)
+  const encrypted = Buffer.concat([cipher.update(buffer), cipher.final()])
+  const authTag = cipher.getAuthTag()
+  return Buffer.concat([Buffer.from('ENC_GCM_V1'), iv, authTag, encrypted])
+}
+
+export function decryptBackupBuffer(buffer, key) {
+  const prefix = buffer.subarray(0, 10).toString('utf-8')
+  if (prefix !== 'ENC_GCM_V1') {
+    throw new Error('Noto‘g‘ri shifrlangan zaxira formati.')
+  }
+  const iv = buffer.subarray(10, 22)
+  const authTag = buffer.subarray(22, 38)
+  const ciphertext = buffer.subarray(38)
+  const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv)
+  decipher.setAuthTag(authTag)
+  return Buffer.concat([decipher.update(ciphertext), decipher.final()])
+}
+
 export async function createDatabaseBackup(pool, adminUsername = 'system') {
   await ensureBackupDir()
 
@@ -41,11 +85,14 @@ export async function createDatabaseBackup(pool, adminUsername = 'system') {
   const filename = `kitobxon-backup-${timestamp}.json.gz`
   const filepath = path.join(BACKUP_DIR, filename)
 
+  const encryptionKey = getBackupEncryptionKey()
+
   const backupData = {
     version: '1.0',
     app: 'e-kitobxon.uz',
     createdAt: new Date().toISOString(),
     createdBy: adminUsername,
+    isEncrypted: Boolean(encryptionKey),
     counts: {},
     tables: {},
   }
@@ -53,7 +100,11 @@ export async function createDatabaseBackup(pool, adminUsername = 'system') {
   // Har bir jadvaldan ma'lumotlarni xavfsiz o'qib olish
   for (const table of TABLES_TO_BACKUP) {
     try {
-      const { rows } = await pool.query(`SELECT * FROM ${table}`)
+      let query = `SELECT * FROM ${table}`
+      if (!encryptionKey && table === 'kitobxon_users') {
+        query = 'SELECT id, username, email, gender, role, is_blocked, last_login_at, created_at FROM kitobxon_users'
+      }
+      const { rows } = await pool.query(query)
       backupData.counts[table] = rows.length
       backupData.tables[table] = rows
     } catch (err) {
@@ -65,8 +116,11 @@ export async function createDatabaseBackup(pool, adminUsername = 'system') {
 
   const jsonString = JSON.stringify(backupData)
   const compressedBuffer = await gzip(Buffer.from(jsonString, 'utf-8'))
+  const finalBuffer = encryptionKey
+    ? encryptBackupBuffer(compressedBuffer, encryptionKey)
+    : compressedBuffer
 
-  await fs.writeFile(filepath, compressedBuffer, { mode: 0o600 })
+  await fs.writeFile(filepath, finalBuffer, { mode: 0o600 })
   try { await fs.chmod(filepath, 0o600) } catch {}
   const stat = await fs.stat(filepath)
 
@@ -79,6 +133,7 @@ export async function createDatabaseBackup(pool, adminUsername = 'system') {
     sizeFormatted: formatBytes(stat.size),
     createdAt: backupData.createdAt,
     createdBy: adminUsername,
+    isEncrypted: Boolean(encryptionKey),
     counts: backupData.counts,
   }
 }
