@@ -165,6 +165,8 @@ test('isSafeBlogCoverUrl allows valid image paths and rejects unsafe schemes', (
   assert.equal(isSafeBlogCoverUrl('https://example.com/cover.jpg'), true)
   assert.equal(isSafeBlogCoverUrl('http://example.com/cover.png'), true)
   assert.equal(isSafeBlogCoverUrl('/uploads/cover.webp'), true)
+  assert.equal(isSafeBlogCoverUrl('//evil.com/a.jpg'), false)
+  assert.equal(isSafeBlogCoverUrl('/\\evil.com/a.jpg'), false)
   assert.equal(isSafeBlogCoverUrl(''), true)
   assert.equal(isSafeBlogCoverUrl(null), true)
   assert.equal(isSafeBlogCoverUrl('javascript:alert(1)'), false)

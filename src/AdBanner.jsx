@@ -6,7 +6,7 @@ import './ad-banner.css'
 function isSafeHttpUrl(url) {
   if (!url || typeof url !== 'string') return false
   try {
-    const parsed = new URL(url, window.location.origin)
+    const parsed = new URL(url)
     return parsed.protocol === 'http:' || parsed.protocol === 'https:'
   } catch {
     return false
@@ -50,7 +50,8 @@ export default function AdBanner({ placement = 'all' }) {
 
   // Google AdSense skriptini dinamik yuklash (agar yoqilgan bo'lsa)
   useEffect(() => {
-    if (data?.adsense?.enabled && data?.adsense?.clientId) {
+    const isValidAdsenseId = /^(ca-)?pub-\d{16}$/.test(data?.adsense?.clientId || '')
+    if (data?.adsense?.enabled && isValidAdsenseId) {
       const scriptId = 'google-adsense-script'
       if (!document.getElementById(scriptId)) {
         const script = document.createElement('script')
@@ -112,7 +113,8 @@ export default function AdBanner({ placement = 'all' }) {
   }
 
   // Agar AdSense yoqilgan bo'lsa
-  if (data?.adsense?.enabled && data?.adsense?.clientId) {
+  const isValidAdsenseId = /^(ca-)?pub-\d{16}$/.test(data?.adsense?.clientId || '')
+  if (data?.adsense?.enabled && isValidAdsenseId) {
     return (
       <aside className="kb-ad-container" aria-label="Reklama">
         <div style={{ minHeight: 90, width: '100%', textAlign: 'center' }}>

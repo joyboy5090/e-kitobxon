@@ -9,7 +9,7 @@ export function isSafeBlogCoverUrl(url) {
   const trimmed = url.trim()
   if (!trimmed) return true
   if (trimmed.length > 1000) return false
-  if (trimmed.startsWith('/')) return true
+  if (trimmed.startsWith('/') && !trimmed.startsWith('//') && !trimmed.includes('\\')) return true
   try {
     const parsed = new URL(trimmed)
     return parsed.protocol === 'http:' || parsed.protocol === 'https:'

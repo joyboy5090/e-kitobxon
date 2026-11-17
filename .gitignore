@@ -33,7 +33,9 @@ Thumbs.db
 # Storage files
 storage/*
 !storage/kitobxon-books/
+storage/kitobxon-books/*
 !storage/kitobxon-books/.gitkeep
 backups/
 *.json.gz
 .gemini/
+GEMINI.md
